@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITOPPLUS - Manage Licenses</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        /*
+        * ส่วนของ CSS สำหรับจัดรูปแบบหน้า Manage Licenses
+        * ใช้ตัวแปร CSS (:root) เพื่อกำหนดสีและค่าต่างๆ ให้ง่ายต่อการแก้ไข
+        */
+        :root {
+            /* สีเขียวของบริษัท */
+            --company-green-light: #e8f5e9;
+            --company-green-main: #66bb6a;
+            --company-green-dark: #4caf50;
+
+            /* สีกลางๆ */
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --app-bg-light: #f4f7f6;
+            --card-bg: #ffffff;
+
+            /* สีของแถบเมนูด้านซ้าย (สีเข้ม) */
+            --panel-bg-dark: #2c3e50;
+            --panel-text-light: #ecf0f1;
+            --panel-active-bg: rgba(102, 187, 106, 0.15);
+            --panel-active-color: var(--company-green-main);
+
+            /* เงาสำหรับองค์ประกอบต่างๆ */
+            --shadow-subtle: 0 6px 20px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+            /* สีสำหรับ Summary Card และ Action Tag */
+            --color-blue: #3498db;
+            --color-orange: #f39c12;
+            --color-red: #e74c3c;
+
+            /* รัศมีขอบเพื่อความโค้งมน */
+            --border-radius-lg: 16px;
+            --border-radius-md: 12px;
+            --border-radius-sm: 8px;
+        }
+
+        /* รูปแบบพื้นฐานของหน้าเว็บ */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background-color: var(--app-bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .page-wrapper {
+            /* คอนเทนเนอร์หลักของทั้งหน้า */
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* แถบเมนูด้านซ้าย (Left Panel) */
+        .left-panel {
+            width: 280px;
+            min-width: 280px;
+            background-color: var(--panel-bg-dark);
+            color: var(--panel-text-light);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            box-shadow: var(--shadow-subtle);
+            z-index: 20;
+            border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: hidden;
+            top: 0;
+            left: 0;
+        }
+
+        .panel-header {
+            /* ส่วนหัวของแถบเมนู (โลโก้และชื่อ) */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .panel-logo {
+            /* จัดรูปแบบโลโก้ */
+            height: 45px;
+            width: auto;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
+        }
+
+        .panel-title {
+            /* จัดรูปแบบชื่อแอปพลิเคชัน */
+            font-size: 2.0rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .panel-nav {
+            /* ส่วนการนำทางหลัก */
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .panel-nav ul {
+            /* จัดรูปแบบรายการเมนู */
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .panel-nav li {
+            /* จัดรูปแบบรายการเมนูแต่ละรายการ */
+            margin-bottom: 6px;
+        }
+
+        .panel-nav a {
+            /* จัดรูปแบบลิงก์ในเมนู */
+            display: flex;
+            align-items: center;
+            color: var(--panel-text-light);
+            text-decoration: none;
+            padding: 14px 15px;
+            border-radius: var(--border-radius-sm);
+            font-size: 1.05rem;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+        }
+
+        .panel-nav a:hover {
+            /* จัดรูปแบบเมื่อเมาส์ชี้ที่ลิงก์ */
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--panel-active-color);
+            transform: translateX(8px);
+        }
+
+        .panel-nav a.active {
+            /* จัดรูปแบบสำหรับลิงก์ที่ใช้งานอยู่ */
+            background: var(--panel-active-bg);
+            color: var(--panel-active-color);
+            font-weight: 600;
+            transform: translateX(5px);
+        }
+
+        .panel-nav a i {
+            /* จัดรูปแบบไอคอนในเมนู */
+            margin-right: 18px;
+            font-size: 1.35rem;
+            width: 25px;
+            text-align: center;
+        }
+
+        .panel-quick-stats {
+            /* ส่วนสถิติย่อด้านล่างแถบเมนู */
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-left: 10px;
+            padding-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .panel-quick-stats h4 {
+            /* จัดรูปแบบหัวข้อสถิติย่อ */
+            color: #fff;
+            font-size: 1.15rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .stat-item {
+            /* จัดรูปแบบแต่ละรายการสถิติ */
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item i {
+            /* จัดรูปแบบไอคอนสถิติ */
+            font-size: 2rem;
+            color: var(--company-green-main);
+            width: 35px;
+            text-align: center;
+        }
+
+        .stat-item .stat-value {
+            /* จัดรูปแบบตัวเลขสถิติ */
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .stat-item .stat-label {
+            /* จัดรูปแบบคำอธิบายสถิติ */
+            font-size: 0.9rem;
+            color: var(--panel-text-light);
+        }
+
+        .panel-footer {
+            /* ส่วนท้ายของแถบเมนู (โปรไฟล์ผู้ใช้และปุ่มออกจากระบบ) */
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding-left: 10px;
+            padding-bottom: 50px;
+            flex-shrink: 0;
+        }
+
+        .user-profile {
+            /* จัดรูปแบบข้อมูลโปรไฟล์ผู้ใช้ */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--panel-text-light);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-profile .user-avatar {
+            /* จัดรูปแบบอวตารผู้ใช้ */
+            font-size: 2.2rem;
+            color: var(--company-green-main);
+        }
+
+        .logout-btn {
+            /* จัดรูปแบบปุ่มออกจากระบบ */
+            background-color: var(--company-green-main);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: var(--border-radius-md);
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-btn:hover {
+            /* จัดรูปแบบเมื่อเมาส์ชี้ที่ปุ่ม */
+            background-color: var(--company-green-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .logout-btn:active {
+            /* จัดรูปแบบเมื่อคลิกปุ่ม */
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* พื้นที่เนื้อหาหลัก (Main Content Area) */
+        .main-content-area {
+            flex-grow: 1;
+            padding: 40px;
+            background-color: var(--app-bg-light);
+            position: relative;
+            border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
+            margin-left: 320px;
+            z-index: 10;
+        }
+
+        .main-content-header {
+            /* ส่วนหัวของพื้นที่เนื้อหา */
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 20px;
+        }
+
+        .main-content-header h1 {
+            /* จัดรูปแบบหัวข้อหลัก */
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .main-content-header .user-display-top {
+            /* แสดงชื่อผู้ใช้ในส่วนหัว */
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: 1rem;
+            opacity: 0.9;
+            background-color: var(--card-bg);
+            padding: 8px 15px;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .main-content-header .user-display-top i {
+            /* จัดรูปแบบไอคอนผู้ใช้ในส่วนหัว */
+            font-size: 1.6rem;
+            color: var(--company-green-main);
+        }
+
+        .main-content-header .user-display-top span {
+            /* จัดรูปแบบชื่อผู้ใช้ในส่วนหัว */
+            color: var(--text-dark);
+        }
+
+        .controls-section {
+            /* ส่วนควบคุมสำหรับการค้นหาและกรองข้อมูล */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: flex-end;
+        }
+
+        .controls-section .input-group {
+            /* จัดกลุ่มของ label และ input */
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .controls-section .input-group label {
+            /* จัดรูปแบบ label */
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+
+        .controls-section .input-group input[type="text"],
+        .controls-section .input-group input[type="email"],
+        .controls-section .input-group select {
+            /* จัดรูปแบบ input และ select */
+            width: 85%;
+            padding: 12px 15px;
+            border: 1px solid #dfe6e9;
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            color: var(--text-dark);
+            background-color: #f9fbfa;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .controls-section .input-group input[type="text"]:focus,
+        .controls-section .input-group input[type="email"]:focus,
+        .controls-section .input-group select:focus {
+            /* จัดรูปแบบเมื่อ input/select ถูกเลือก (focus) */
+            border-color: var(--company-green-main);
+            box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.2);
+            outline: none;
+        }
+
+        .action-buttons {
+            /* กลุ่มปุ่มสำหรับเพิ่ม/กรอง/ล้างข้อมูล */
+            display: flex;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            /* รูปแบบพื้นฐานของปุ่ม */
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            justify-content: center;
+        }
+
+        .btn.primary {
+            /* ปุ่มหลัก (สีเขียว) */
+            background-color: var(--company-green-main);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn.primary:hover {
+            background-color: var(--company-green-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn.secondary {
+            /* ปุ่มรอง (สีเทา) */
+            background-color: #ecf0f1;
+            color: var(--text-dark);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn.secondary:hover {
+            background-color: #dfe6e9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn.danger {
+            /* ปุ่มอันตราย (สีแดง) */
+            background-color: var(--color-red);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn.danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ตารางแสดงรายการ License */
+        .license-table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            box-shadow: var(--shadow-subtle);
+            border-radius: var(--border-radius-lg);
+            background: var(--card-bg);
+            padding: 25px;
+        }
+
+        .license-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .license-table thead th {
+            padding: 15px 10px;
+            background-color: var(--company-green-light);
+            color: var(--company-green-dark);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--company-green-main);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .license-table thead tr:first-child th:first-child {
+            border-top-left-radius: var(--border-radius-sm);
+        }
+
+        .license-table thead tr:first-child th:last-child {
+            border-top-right-radius: var(--border-radius-sm);
+        }
+
+        .license-table tbody td {
+            padding: 15px 10px;
+            border-bottom: 1px solid #e0e6e9;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            word-break: break-word;
+        }
+
+        .license-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .license-table tbody tr:hover {
+            background-color: #f0f7f5;
+            cursor: pointer;
+        }
+
+        .license-table .action-column {
+            text-align: center;
+        }
+
+        .license-table .action-column .btn {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            margin: 0 5px;
+        }
+
+        /* การแบ่งหน้า (Pagination) */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .pagination button {
+            background-color: var(--card-bg);
+            border: 1px solid #dfe6e9;
+            border-radius: var(--border-radius-sm);
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-dark);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: var(--company-green-light);
+            border-color: var(--company-green-main);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+
+        /* Modal Styles (สำหรับเพิ่ม/แก้ไข License) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.is-open {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: auto;
+            padding: 30px;
+            border-radius: var(--border-radius-lg);
+            width: 90%;
+            max-width: 700px;
+            box-shadow: var(--shadow-hover);
+            position: relative;
+            transform: translateY(-50px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .modal.is-open .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--text-dark);
+        }
+
+        .close-button {
+            color: var(--text-light);
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--color-red);
+            text-decoration: none;
+        }
+
+        .modal-body .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-body .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+
+        .modal-body .form-group input[type="text"],
+        .modal-body .form-group input[type="email"],
+        .modal-body .form-group textarea,
+        .modal-body .form-group select {
+            width: calc(100% - 30px);
+            padding: 12px 15px;
+            border: 1px solid #dfe6e9;
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            color: var(--text-dark);
+            background-color: #f9fbfa;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .modal-body .form-group input[type="text"]:focus,
+        .modal-body .form-group input[type="email"]:focus,
+        .modal-body .form-group textarea:focus,
+        .modal-body .form-group select:focus {
+            border-color: var(--company-green-main);
+            box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.2);
+            outline: none;
+        }
+
+        .modal-body .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        /* รูปแบบ Badge สำหรับสถานะการใช้งาน License */
+        .used-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .used-badge.full {
+            background-color: var(--color-red);
+            color: #fff;
+        }
+
+        .used-badge.partial {
+            background-color: var(--color-orange);
+            color: #fff;
+        }
+
+        .used-badge.empty {
+            background-color: var(--company-green-main);
+            color: #fff;
+        }
+
+        /* Custom CSS สำหรับ SweetAlert2 เพื่อให้มีพื้นหลังสีเขียว */
+        .swal2-success-custom-bg {
+            background-color: #ffffff !important;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 1024px) {
+            .left-panel {
+                width: 250px;
+                min-width: 250px;
+                padding: 25px 15px;
+            }
+
+            .panel-nav a {
+                font-size: 1rem;
+            }
+
+            .panel-nav a i {
+                font-size: 1.15rem;
+            }
+
+            .main-content-area {
+                padding: 30px;
+                margin-left: -15px;
+            }
+
+            .main-content-header h1 {
+                font-size: 2.8rem;
+            }
+
+            .main-content-header .user-display-top {
+                font-size: 0.95rem;
+            }
+
+            .main-content-header .user-display-top i {
+                font-size: 1.4rem;
+            }
+
+            .card {
+                padding: 25px;
+            }
+
+            .license-table thead th,
+            .license-table tbody td {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .left-panel {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-out;
+                border-radius: 0;
+            }
+
+            .left-panel.active {
+                transform: translateX(0%);
+            }
+
+            .main-content-area {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .main-content-header {
+                text-align: left;
+                margin-top: 70px;
+                margin-bottom: 25px;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-right: 0;
+            }
+
+            .main-content-header h1 {
+                font-size: 2.4rem;
+            }
+
+            .main-content-header .user-display-top {
+                margin-top: 15px;
+                align-self: stretch;
+                justify-content: center;
+                padding: 10px;
+            }
+
+            .controls-section {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .controls-section .input-group {
+                width: 100%;
+                min-width: unset;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .modal-header h3 {
+                font-size: 1.4rem;
+            }
+
+            .license-table-container {
+                padding: 15px;
+            }
+
+            .license-table thead th,
+            .license-table tbody td {
+                padding: 10px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* NEW CSS สำหรับกล่องแสดงรายละเอียด License ด้วย SweetAlert2 */
+        .swal2-container .license-detail-item {
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .swal2-container .license-detail-item strong {
+            display: inline-block;
+            min-width: 140px;
+            color: var(--company-green-dark);
+            flex-shrink: 0;
+            padding-right: 10px;
+        }
+
+        .swal2-container .license-detail-item span {
+            color: var(--text-dark);
+            flex-grow: 1;
+            word-break: break-word;
+        }
+
+        .swal2-container .license-detail-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        @media (max-width: 700px) {
+            .swal2-container .license-detail-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .swal2-container .license-detail-item strong {
+                min-width: unset;
+                padding-right: 0;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <aside class="left-panel" id="leftPanel">
+            <div class="panel-header">
+                <span class="panel-title">ITOPPLUS</span>
+            </div>
+
+            <nav class="panel-nav">
+                <ul>
+                    <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a></li>
+                    <li><a href="manage.html"><i class="fa-solid fa-boxes-stacked"></i> <span>Assets</span></a></li>
+                    <li><a href="note.html"><i class="fa-solid fa-note-sticky"></i> <span>Notes</span></a></li>
+                    <li id="licenseLinkWrapperLeftPanel"><a href="license.html" class="active"><i
+                                class="fa-solid fa-key"></i>
+                            <span>Licenses</span></a></li>
+                    <li id="memberLinkWrapperLeftPanel"><a href="member.html"><i class="fa-solid fa-users"></i>
+                            <span>Member</span></a></li>
+                    <li id="historyLinkWrapperLeftPanel"><a href="history.html"><i class="fa-solid fa-history"></i>
+                            <span>History</span></a></li>
+                </ul>
+            </nav>
+
+            <div class="panel-quick-stats">
+                <h4>Quick Stats</h4>
+                <div class="stat-item">
+                    <i class="fa-solid fa-arrow-up-right-dots"></i>
+                    <div>
+                        <span class="stat-value" id="assetsAddedMonth">0</span>
+                        <span class="stat-label">Assets Added</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <i class="fa-solid fa-arrow-down-left-dots"></i>
+                    <div>
+                        <span class="stat-value" id="assetsRetiredMonth">0</span>
+                        <span class="stat-label">Assets Retired</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-footer">
+                <div class="user-profile">
+                    <i class="fa-solid fa-user-circle user-avatar"></i>
+                    <span id="userNameDisplay">Guest User</span>
+                </div>
+                <button class="logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content-area">
+            <header class="main-content-header">
+                <h1>Manage Licenses</h1>
+                <div class="user-display-top">
+                    <span id="userDisplayTop">Guest User</span>
+                    <i class="fa-solid fa-user-circle"></i>
+                </div>
+            </header>
+
+            <div class="licenses-section card is-visible" data-delay="0">
+                <h3>All Licenses</h3>
+
+                <div class="controls-section">
+                    <div class="input-group">
+                        <label for="searchLicense">Search by Product/Email:</label>
+                        <input type="text" id="searchLicense" placeholder="Search by keyword">
+                    </div>
+                    <div class="input-group">
+                        <label for="filterProduct">Filter by Product:</label>
+                        <select id="filterProduct">
+                            <option value="">All Products</option>
+                            <option value="Adobe">Adobe</option>
+                            <option value="Ms Office">MS Office</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="filterType">Filter by Type:</label>
+                        <select id="filterType">
+                            <option value="">All Types</option>
+                        </select>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn primary" id="addLicenseBtn"><i class="fa-solid fa-plus"></i> Add
+                            License</button>
+                        <button class="btn secondary" id="applyLicenseFiltersBtn"><i class="fa-solid fa-filter"></i>
+                            Apply Filters</button>
+                        <button class="btn secondary" id="clearLicenseFiltersBtn"><i class="fa-solid fa-xmark"></i>
+                            Clear Filters</button>
+                    </div>
+                </div>
+
+                <div class="license-table-container">
+                    <table class="license-table">
+                        <thead>
+                            <tr>
+                                <th>Product Main Type</th>
+                                <th>Product Sub Type</th>
+                                <th>Main Email</th>
+                                <th>User 1 Name</th>
+                                <th>Dept 1</th>
+                                <th>User 2 Name</th>
+                                <th>Dept 2</th>
+                                <th>Used</th>
+                                <th class="action-column">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="licenseTableBody">
+                            <tr>
+                                <td colspan="9" style="text-align: center; padding: 20px;">กำลังโหลดข้อมูล License...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <button id="prevLicensePageBtn" disabled><i class="fa-solid fa-chevron-left"></i> Previous</button>
+                    <span id="currentLicensePageDisplay">Page 1 of 1</span>
+                    <button id="nextLicensePageBtn" disabled>Next <i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="licenseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New License</h3>
+                <span class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="licenseForm">
+                    <input type="hidden" id="licenseId" name="license_id">
+                    <div class="form-group">
+                        <label for="modalProductMainType">Product Main Type:</label>
+                        <select id="modalProductMainType" name="product_main_type" required>
+                            <option value="">Select Product Main Type</option>
+                            <option value="Adobe">Adobe</option>
+                            <option value="Ms Office">MS Office</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalProductSubType">Product Sub Type:</label>
+                        <select id="modalProductSubType" name="product_sub_type" required>
+                            <option value="">Select Product Sub Type</option>
+                        </select>
+                        <input type="text" id="modalProductSubTypeText" placeholder="Enter other type"
+                            style="display:none; margin-top: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="modalMainEmail">Main Email:</label>
+                        <input type="email" id="modalMainEmail" name="main_email" placeholder="Main Email">
+                    </div>
+                    <div class="form-group">
+                        <label for="modalUser1Name">User 1 Name:</label>
+                        <input type="text" id="modalUser1Name" name="user1_name" placeholder="User 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="modalUser1Department">User 1 Department:</label>
+                        <select id="modalUser1Department" name="user1_department">
+                            <option value="">Select Department</option>
+                            <option value="Plusventure">Plusventure</option>
+                            <option value="Data">Data</option>
+                            <option value="Sale">Sale</option>
+                            <option value="Account">Account</option>
+                            <option value="Human resource">Human resource</option>
+                            <option value="Website">Website</option>
+                            <option value="Google">Google</option>
+                            <option value="Customer service">Customer service</option>
+                            <option value="Developer">Developer</option>
+                            <option value="Automation">Automation</option>
+                        </select>
+                        <input type="text" id="modalUser1DepartmentText" placeholder="Enter other department"
+                            style="display:none; margin-top: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="modalUser2Name">User 2 Name:</label>
+                        <input type="text" id="modalUser2Name" name="user2_name" placeholder="User 2">
+                    </div>
+                    <div class="form-group">
+                        <label for="modalUser2Department">User 2 Department:</label>
+                        <select id="modalUser2Department" name="user2_department">
+                            <option value="">Select Department</option>
+                            <option value="Plusventure">Plusventure</option>
+                            <option value="Data">Data</option>
+                            <option value="Sale">Sale</option>
+                            <option value="Account">Account</option>
+                            <option value="Human resource">Human resource</option>
+                            <option value="Website">Website</option>
+                            <option value="Google">Google</option>
+                            <option value="Customer service">Customer service</option>
+                            <option value="Developer">Developer</option>
+                            <option value="Automation">Automation</option>
+                        </select>
+                        <input type="text" id="modalUser2DepartmentText" placeholder="Enter other department"
+                            style="display:none; margin-top: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="modalNotes">Notes:</label>
+                        <textarea id="modalNotes" name="notes" placeholder="Note"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn secondary" id="cancelLicenseBtn">Cancel</button>
+                        <button type="submit" class="btn primary" id="saveLicenseBtn">Save License</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data สำหรับ Product Sub Type (สามารถเพิ่ม/แก้ไขได้)
+        const PRODUCT_TYPES = {
+            "Adobe": ["Creative Cloud", "Photoshop", "Illustrator", "Premiere Pro", "Acrobat Pro"],
+            "Ms Office": ["Office 365", "Office 2019", "Office 2021", "Microsoft 365 Business Basic", "Microsoft 365 Standard"],
+            // เพิ่ม Product Main Type และ Sub Type อื่นๆ ที่นี่
+            "Other": [] // สำหรับกรณีที่ Product Main Type ไม่ตรงกับที่กำหนด
+        };
+
+        // Data สำหรับ Department (สามารถเพิ่ม/แก้ไขได้)
+        const DEPARTMENTS = [
+            "Plusventure", "Data", "Sale", "Account", "Human resource", "Website", "Google", "Customer service", "Developer", "Automation"
+        ];
+
+        // Global Variables
+        let allLicenses = []; // เก็บข้อมูล License ทั้งหมดที่ดึงมา
+        let filteredLicenses = []; // เก็บข้อมูลที่ถูกกรองแล้ว
+        const licensesPerPage = 5;
+        let currentLicensePage = 1;
+        let isEditMode = false;
+
+        // DOM Elements
+        const leftPanel = document.getElementById('leftPanel');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userDisplayTop = document.getElementById('userDisplayTop');
+        const memberLinkWrapperLeftPanel = document.getElementById('memberLinkWrapperLeftPanel');
+        const historyLinkWrapperLeftPanel = document.getElementById('historyLinkWrapperLeftPanel');
+        const licenseLinkWrapperLeftPanel = document.getElementById('licenseLinkWrapperLeftPanel');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        const licenseTableBody = document.getElementById('licenseTableBody');
+        const searchLicenseInput = document.getElementById('searchLicense');
+        const filterProductSelect = document.getElementById('filterProduct'); // Filter by Product Main Type
+        const filterTypeSelect = document.getElementById('filterType'); // Filter by Product Sub Type
+        const addLicenseBtn = document.getElementById('addLicenseBtn');
+        const applyLicenseFiltersBtn = document.getElementById('applyLicenseFiltersBtn');
+        const clearLicenseFiltersBtn = document.getElementById('clearLicenseFiltersBtn');
+        const prevLicensePageBtn = document.getElementById('prevLicensePageBtn');
+        const nextLicensePageBtn = document.getElementById('nextLicensePageBtn');
+        const currentLicensePageDisplay = document.getElementById('currentLicensePageDisplay');
+
+        const licenseModal = document.getElementById('licenseModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeButton = licenseModal.querySelector('.close-button');
+        const licenseForm = document.getElementById('licenseForm');
+        const licenseIdInput = document.getElementById('licenseId');
+        const modalProductMainType = document.getElementById('modalProductMainType');
+        const modalProductSubType = document.getElementById('modalProductSubType');
+        const modalProductSubTypeText = document.getElementById('modalProductSubTypeText');
+        const modalMainEmail = document.getElementById('modalMainEmail');
+        const modalUser1Name = document.getElementById('modalUser1Name');
+        const modalUser1Department = document.getElementById('modalUser1Department');
+        const modalUser1DepartmentText = document.getElementById('modalUser1DepartmentText');
+        const modalUser2Name = document.getElementById('modalUser2Name');
+        const modalUser2Department = document.getElementById('modalUser2Department');
+        const modalUser2DepartmentText = document.getElementById('modalUser2DepartmentText');
+        const modalNotes = document.getElementById('modalNotes');
+        const cancelLicenseBtn = document.getElementById('cancelLicenseBtn');
+        const saveLicenseBtn = document.getElementById('saveLicenseBtn');
+
+
+        // --- Authentication and Authorization Check ---
+        let currentUser = null;
+        const currentUserString = localStorage.getItem('user');
+
+        if (!currentUserString) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'เซสชันหมดอายุ',
+                text: 'กรุณาเข้าสู่ระบบอีกครั้ง.',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                window.location.href = 'login.html';
+            });
+            document.body.innerHTML = '';
+            throw new Error("User not logged in. Redirecting...");
+        } else {
+            try {
+                currentUser = JSON.parse(currentUserString);
+                if (!currentUser || !currentUser.user_id || !currentUser.username || !currentUser.role) {
+                    throw new Error("Invalid user data in localStorage.");
+                }
+
+                // ตรวจสอบสิทธิ์ผู้ใช้ ถ้าไม่ใช่ 'Admin' จะถูกปฏิเสธการเข้าถึงหน้านี้
+                if (currentUser.role !== 'Admin') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ไม่ได้รับอนุญาต',
+                        text: 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้.',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.href = 'dashboard.html';
+                    });
+                    document.body.innerHTML = '';
+                    throw new Error("Unauthorized access. Redirecting...");
+                }
+            } catch (e) {
+                console.error("Authentication/Authorization Error:", e.message);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'เซสชันหมดอายุ',
+                    text: 'ข้อมูลผู้ใช้เสียหาย กรุณาเข้าสู่ระบบอีกครั้ง.',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.href = 'login.html';
+                });
+                document.body.innerHTML = '';
+                throw e;
+            }
+        }
+
+
+        // --- Helper Functions ---
+
+        // ฟังก์ชันสำหรับดึงและแสดงสถิติย่อในแถบเมนู
+        async function fetchAndDisplayQuickStats() {
+            try {
+                const response = await fetch('api/get_dashboard_stats.php');
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('assetsAddedMonth').textContent = result.data.assets_added_month;
+                    document.getElementById('assetsRetiredMonth').textContent = result.data.assets_retired_month;
+                } else {
+                    console.error('Error fetching quick stats:', result.message);
+                }
+            } catch (error) {
+                console.error('Network or parsing error fetching quick stats:', error);
+            }
+        }
+
+        // ฟังก์ชันช่วยในการคำนวณสถานะ "Used"
+        function getUsedStatus(user1Name, user2Name) {
+            const isUser1Assigned = (user1Name && user1Name.trim().toLowerCase() !== 'none' && user1Name.trim() !== '');
+            const isUser2Assigned = (user2Name && user2Name.trim().toLowerCase() !== 'none' && user2Name.trim() !== '');
+
+            if (isUser1Assigned && isUser2Assigned) {
+                return { text: '2/2', class: 'full' };
+            } else if (isUser1Assigned || isUser2Assigned) {
+                return { text: '1/2', class: 'partial' };
+            } else {
+                return { text: '0/2', class: 'empty' };
+            }
+        }
+
+        // ฟังก์ชันสำหรับสร้างตัวเลือกใน dropdown (เช่น Department)
+        function populateDropdown(selectElement, optionsArray, selectedValue = '') {
+            selectElement.innerHTML = '<option value="">Select Department</option>';
+            optionsArray.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option;
+                if (option === selectedValue) {
+                    opt.selected = true;
+                }
+                selectElement.appendChild(opt);
+            });
+            // เพิ่มตัวเลือก "Other"
+            if (selectElement.id.includes('Department')) {
+                const otherOption = document.createElement('option');
+                otherOption.value = "Other";
+                otherOption.textContent = "Other (specify)";
+                if (selectedValue && !optionsArray.includes(selectedValue)) {
+                    otherOption.selected = true;
+                }
+                selectElement.appendChild(otherOption);
+            }
+        }
+
+        // ฟังก์ชันสำหรับจัดการ dropdown Product Sub Type ใน Modal ให้เปลี่ยนตาม Product Main Type ที่เลือก
+        function updateProductSubTypeDropdown(selectedMainType, selectedSubType = '') {
+            modalProductSubType.innerHTML = '<option value="">Select Product Sub Type</option>';
+            modalProductSubTypeText.style.display = 'none';
+
+            if (selectedMainType && PRODUCT_TYPES[selectedMainType]) {
+                PRODUCT_TYPES[selectedMainType].forEach(subType => {
+                    const option = document.createElement('option');
+                    option.value = subType;
+                    option.textContent = subType;
+                    if (subType === selectedSubType) {
+                        option.selected = true;
+                    }
+                    modalProductSubType.appendChild(option);
+                });
+            }
+
+            const otherOption = document.createElement('option');
+            otherOption.value = "Other";
+            otherOption.textContent = "Other (specify)";
+            if (selectedSubType && (!PRODUCT_TYPES[selectedMainType] || !PRODUCT_TYPES[selectedMainType].includes(selectedSubType))) {
+                otherOption.selected = true;
+                modalProductSubTypeText.style.display = 'block';
+                modalProductSubTypeText.value = selectedSubType;
+            }
+            modalProductSubType.appendChild(otherOption);
+        }
+
+        // ฟังก์ชันสำหรับจัดการการแสดง input "Other"
+        function setupOtherInputToggle(selectElement, textInputElement) {
+            selectElement.addEventListener('change', () => {
+                if (selectElement.value === 'Other') {
+                    textInputElement.style.display = 'block';
+                    textInputElement.value = '';
+                    textInputElement.focus();
+                } else {
+                    textInputElement.style.display = 'none';
+                }
+            });
+            if (selectElement.value === 'Other') {
+                textInputElement.style.display = 'block';
+            }
+        }
+
+        // ฟังก์ชันสำหรับสร้าง dropdown Filter by Type ตาม Filter by Product
+        function populateFilterTypeSelect(selectedProductMainType) {
+            filterTypeSelect.innerHTML = '<option value="">All Types</option>';
+
+            if (selectedProductMainType && PRODUCT_TYPES[selectedProductMainType]) {
+                PRODUCT_TYPES[selectedProductMainType].forEach(subType => {
+                    const option = document.createElement('option');
+                    option.value = subType;
+                    option.textContent = subType;
+                    filterTypeSelect.appendChild(option);
+                });
+            }
+        }
+
+
+        // --- Main Functions for Licenses ---
+
+        // ฟังก์ชันสำหรับดึงข้อมูล License ทั้งหมดจากเซิร์ฟเวอร์
+        async function fetchLicenses() {
+            licenseTableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;">กำลังโหลดข้อมูล License...</td></tr>`;
+            try {
+                const searchTerm = searchLicenseInput.value.trim();
+                const filterProduct = filterProductSelect.value;
+                const filterType = filterTypeSelect.value;
+
+                const queryParams = new URLSearchParams();
+                if (searchTerm) queryParams.append('search', searchTerm);
+                if (filterProduct) queryParams.append('product', filterProduct);
+                if (filterType) queryParams.append('type', filterType);
+
+                const response = await fetch(`api/get_licenses.php?${queryParams.toString()}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                }
+                const result = await response.json();
+
+                if (result.success && Array.isArray(result.data)) {
+                    allLicenses = result.data;
+                    applyLicenseFilters(); // เรียกใช้ฟังก์ชันกรองและแสดงผลหลังจากได้ข้อมูลมาทั้งหมด
+                } else if (result.success && result.data.length === 0) {
+                    allLicenses = [];
+                    applyLicenseFilters();
+                } else {
+                    if (Array.isArray(result)) {
+                        allLicenses = result;
+                    } else {
+                        throw new Error(result.message || 'รูปแบบข้อมูลไม่ถูกต้องจากเซิร์ฟเวอร์');
+                    }
+                }
+            } catch (error) {
+                licenseTableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding:20px; color:red;">ไม่สามารถโหลดข้อมูล License ได้ (ข้อผิดพลาดเครือข่าย: ${error.message})</td></tr>`;
+                console.error("Error fetching licenses:", error);
+                Swal.fire({ icon: 'error', title: 'โหลดข้อมูล License ไม่สำเร็จ', text: error.message });
+            }
+        }
+
+        // ฟังก์ชันสำหรับกรองข้อมูล License ในฝั่ง client-side
+        function applyLicenseFilters() {
+            const searchTerm = searchLicenseInput.value.toLowerCase();
+            const filterProduct = filterProductSelect.value;
+            const filterType = filterTypeSelect.value;
+
+            filteredLicenses = allLicenses.filter(license => {
+                const matchesSearch = searchTerm === '' ||
+                    (license.product_main_type && license.product_main_type.toLowerCase().includes(searchTerm)) ||
+                    (license.product_sub_type && license.product_sub_type.toLowerCase().includes(searchTerm)) ||
+                    (license.main_email && license.main_email.toLowerCase().includes(searchTerm)) ||
+                    (license.user1_name && license.user1_name.toLowerCase().includes(searchTerm)) ||
+                    (license.user2_name && license.user2_name.toLowerCase().includes(searchTerm));
+
+                const matchesProduct = filterProduct === '' || license.product_main_type === filterProduct;
+                const matchesType = filterType === '' || license.product_sub_type === filterType;
+
+                return matchesSearch && matchesProduct && matchesType;
+            });
+            currentLicensePage = 1; // รีเซ็ตหน้าเป็นหน้าแรกหลังจากกรอง
+            renderLicenses();
+        }
+
+        // ฟังก์ชันสำหรับล้างตัวกรองทั้งหมด
+        function clearLicenseFilters() {
+            searchLicenseInput.value = '';
+            filterProductSelect.value = '';
+            filterTypeSelect.innerHTML = '<option value="">All Types</option>';
+            applyLicenseFilters();
+        }
+
+        // ฟังก์ชันสำหรับแสดงผลข้อมูล License ในตาราง
+        function renderLicenses() {
+            licenseTableBody.innerHTML = '';
+            const startIndex = (currentLicensePage - 1) * licensesPerPage;
+            const endIndex = startIndex + licensesPerPage;
+            const licensesToRender = filteredLicenses.slice(startIndex, endIndex);
+
+            if (licensesToRender.length === 0) {
+                licenseTableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;">ไม่พบข้อมูล License ที่ตรงกับเงื่อนไข</td></tr>`;
+                currentLicensePageDisplay.textContent = 'Page 0 of 0';
+                prevLicensePageBtn.disabled = true;
+                nextLicensePageBtn.disabled = true;
+                return;
+            }
+
+            licensesToRender.forEach(license => {
+                const usedStatus = getUsedStatus(license.user1_name, license.user2_name);
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', license.license_id);
+                row.innerHTML = `
+                    <td>${license.product_main_type || 'N/A'}</td>
+                    <td>${license.product_sub_type || 'N/A'}</td>
+                    <td>${license.main_email || 'N/A'}</td>
+                    <td>${license.user1_name || 'NONE'}</td>
+                    <td>${license.user1_department || 'N/A'}</td>
+                    <td>${license.user2_name || 'NONE'}</td>
+                    <td>${license.user2_department || 'N/A'}</td>
+                    <td><span class="used-badge ${usedStatus.class}">${usedStatus.text}</span></td>
+                    <td class="action-column">
+                        <button class="btn secondary edit-license-btn" data-id="${license.license_id}"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                        <button class="btn danger delete-license-btn" data-id="${license.license_id}"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                    </td>
+                `;
+                licenseTableBody.appendChild(row);
+            });
+            updateLicensePaginationControls();
+        }
+
+        // ฟังก์ชันสำหรับอัปเดตสถานะของปุ่ม Pagination
+        function updateLicensePaginationControls() {
+            const totalPages = Math.ceil(filteredLicenses.length / licensesPerPage);
+            currentLicensePageDisplay.textContent = `Page ${totalPages > 0 ? currentLicensePage : 0} of ${totalPages}`;
+            prevLicensePageBtn.disabled = currentLicensePage === 1;
+            nextLicensePageBtn.disabled = currentLicensePage === totalPages || totalPages === 0;
+        }
+
+        // เปิด Modal สำหรับเพิ่ม/แก้ไข License
+        function openLicenseModal(license = null) {
+            licenseModal.classList.add('is-open');
+            licenseForm.reset();
+            modalProductSubTypeText.style.display = 'none';
+            modalUser1DepartmentText.style.display = 'none';
+            modalUser2DepartmentText.style.display = 'none';
+
+            populateDropdown(modalUser1Department, DEPARTMENTS);
+            populateDropdown(modalUser2Department, DEPARTMENTS);
+
+            if (license) {
+                isEditMode = true;
+                modalTitle.textContent = 'Edit License';
+                licenseIdInput.value = license.license_id;
+                modalProductMainType.value = license.product_main_type || '';
+                updateProductSubTypeDropdown(license.product_main_type, license.product_sub_type);
+                modalMainEmail.value = license.main_email || '';
+                modalUser1Name.value = license.user1_name || '';
+                if (DEPARTMENTS.includes(license.user1_department)) {
+                    modalUser1Department.value = license.user1_department;
+                    modalUser1DepartmentText.style.display = 'none';
+                } else if (license.user1_department) {
+                    modalUser1Department.value = 'Other';
+                    modalUser1DepartmentText.style.display = 'block';
+                    modalUser1DepartmentText.value = license.user1_department;
+                } else {
+                    modalUser1Department.value = '';
+                }
+
+                modalUser2Name.value = license.user2_name || '';
+                if (DEPARTMENTS.includes(license.user2_department)) {
+                    modalUser2Department.value = license.user2_department;
+                    modalUser2DepartmentText.style.display = 'none';
+                } else if (license.user2_department) {
+                    modalUser2Department.value = 'Other';
+                    modalUser2DepartmentText.style.display = 'block';
+                    modalUser2DepartmentText.value = license.user2_department;
+                } else {
+                    modalUser2Department.value = '';
+                }
+                modalNotes.value = license.notes || '';
+            } else {
+                isEditMode = false;
+                modalTitle.textContent = 'Add New License';
+                licenseIdInput.value = '';
+                modalProductMainType.value = '';
+                modalProductSubType.innerHTML = '<option value="">Select Product Sub Type</option>';
+            }
+        }
+
+        // ปิด Modal
+        function closeLicenseModal() {
+            licenseModal.classList.remove('is-open');
+            licenseForm.reset();
+        }
+
+        // Submit License Form
+        licenseForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const license_id = licenseIdInput.value;
+            const product_main_type = modalProductMainType.value;
+            const product_sub_type = modalProductSubType.value === 'Other' ? modalProductSubTypeText.value.trim() : modalProductSubType.value;
+            const main_email = modalMainEmail.value.trim();
+            const user1_name = modalUser1Name.value.trim();
+            const user1_department = modalUser1Department.value === 'Other' ? modalUser1DepartmentText.value.trim() : modalUser1Department.value;
+            const user2_name = modalUser2Name.value.trim();
+            const user2_department = modalUser2Department.value === 'Other' ? modalUser2DepartmentText.value.trim() : modalUser2Department.value;
+            const notes = modalNotes.value.trim();
+
+            if (!product_main_type || !product_sub_type) {
+                Swal.fire('ข้อผิดพลาด', 'กรุณาเลือกประเภทผลิตภัณฑ์หลักและประเภทย่อย', 'warning');
+                return;
+            }
+            if (!main_email) {
+                Swal.fire('ข้อผิดพลาด', 'กรุณาระบุ Main Email', 'warning');
+                return;
+            }
+            const final_user1_name = user1_name === '' ? 'NONE' : user1_name;
+            const final_user2_name = user2_name === '' ? 'NONE' : user2_name;
+            const final_user1_department = user1_department === '' ? null : user1_department;
+            const final_user2_department = user2_department === '' ? null : user2_department;
+
+            const dataToSend = {
+                license_id,
+                product_main_type,
+                product_sub_type,
+                main_email,
+                user1_name: final_user1_name,
+                user1_department: final_user1_department,
+                user2_name: final_user2_name,
+                user2_department: final_user2_department,
+                notes,
+            };
+
+            if (currentUser && currentUser.user_id) {
+                dataToSend.current_user_id = currentUser.user_id;
+                dataToSend.current_username = currentUser.username;
+            } else {
+                dataToSend.current_user_id = null;
+                dataToSend.current_username = "Unknown User";
+            }
+
+            const url = isEditMode ? 'api/update_license.php' : 'api/add_license.php';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server response not OK:', response.status, errorText);
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        throw new Error(errorJson.message || `HTTP error! status: ${response.status}`);
+                    } catch (e) {
+                        throw new Error(`HTTP error! status: ${response.status}, Raw response: ${errorText}`);
+                    }
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        title: 'สำเร็จ!',
+                        text: result.message,
+                        icon: 'success',
+                        customClass: {
+                            popup: 'swal2-success-custom-bg'
+                        }
+                    }).then(() => {
+                        closeLicenseModal();
+                        fetchLicenses();
+                        fetchAndDisplayQuickStats();
+                    });
+                } else {
+                    Swal.fire('ข้อผิดพลาด', result.message, 'error');
+                }
+            } catch (error) {
+                console.error("Error submitting license form:", error);
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูล License ได้: ' + error.message, 'error');
+            }
+        });
+
+        // ลบ License
+        async function confirmDeleteLicense(licenseId) {
+            const result = await Swal.fire({
+                title: 'ยืนยันการลบ License?',
+                text: 'การดำเนินการนี้ไม่สามารถยกเลิกได้ คุณแน่ใจหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'ใช่, ลบเลย!',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (result.isConfirmed) {
+                let current_user_id_for_log = null;
+                let current_username_for_log = "Unknown User";
+                if (currentUser && currentUser.user_id) {
+                    current_user_id_for_log = currentUser.user_id;
+                    current_username_for_log = currentUser.username;
+                }
+
+                try {
+                    const response = await fetch('api/delete_license.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            license_id: licenseId,
+                            current_user_id: current_user_id_for_log,
+                            current_username: current_username_for_log
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'สำเร็จ!',
+                            text: data.message,
+                            icon: 'success',
+                            customClass: {
+                                popup: 'swal2-success-custom-bg'
+                            }
+                        }).then(() => {
+                            fetchLicenses();
+                            fetchAndDisplayQuickStats();
+                        });
+                    } else {
+                        Swal.fire('เกิดข้อผิดพลาด', data.message, 'error');
+                    }
+                } catch (err) {
+                    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบ License ได้: ' + err.message, 'error');
+                }
+            }
+        }
+
+        // แสดงรายละเอียด License ใน Pop-up (อ่านอย่างเดียว)
+        async function showLicenseDetailsPopup(licenseId) {
+            let licenseData = allLicenses.find(license => license.license_id == licenseId);
+
+            if (!licenseData) {
+                try {
+                    const response = await fetch(`api/get_license_by_id.php?license_id=${licenseId}`);
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                    }
+                    const result = await response.json();
+                    if (result.success) licenseData = result.data;
+                    else {
+                        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถดึงข้อมูล License ได้: ' + result.message, 'error');
+                        return;
+                    }
+                } catch (error) {
+                    Swal.fire('ข้อผิดพลาด', 'ข้อผิดพลาดเครือข่ายในการดึงข้อมูล License: ' + error.message, 'error');
+                    return;
+                }
+            }
+
+            if (!licenseData) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูล License', 'error');
+                return;
+            }
+
+            // ฟังก์ชันช่วยในการจัดรูปแบบวันที่
+            const formatDate = (dateString) => {
+                if (!dateString || dateString === '0000-00-00 00:00:00') return 'N/A';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('th-TH', {
+                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+            };
+
+            const detailsHtml = `
+                <div style="text-align: left; max-height: 400px; overflow-y: auto; padding-right: 15px;">
+                    <div class="license-detail-item"><strong>License ID:</strong> <span>${licenseData.license_id || 'N/A'}</span></div>
+                    <div class="license-detail-item"><strong>Product Main Type:</strong> <span>${licenseData.product_main_type || 'N/A'}</span></div>
+                    <div class="license-detail-item"><strong>Product Sub Type:</strong> <span>${licenseData.product_sub_type || 'N/A'}</span></div>
+                    <div class="license-detail-item"><strong>Main Email:</strong> <span>${licenseData.main_email || 'N/A'}</span></div>
+                    <div class="license-detail-item"><strong>User 1 Name:</strong> <span>${licenseData.user1_name || 'NONE'}</span></div>
+                    <div class="license-detail-item"><strong>User 1 Department:</strong> <span>${licenseData.user1_department || 'N/A'}</span></div>
+                    <div class="license-detail-item"><strong>User 2 Name:</strong> <span>${licenseData.user2_name || 'NONE'}</span></div>
+                    <div class="license-detail-item"><strong>User 2 Department:</strong> <span>${licenseData.user2_department || 'N/A'}</span></div>
+                    <div class="license-detail-item"><strong>Notes:</strong> <span class="license-detail-content">${licenseData.notes || 'ไม่มี'}</span></div>
+                    <div class="license-detail-item"><strong>Created At:</strong> <span>${formatDate(licenseData.created_at)}</span></div>
+                    <div class="license-detail-item"><strong>Last Updated:</strong> <span>${formatDate(licenseData.updated_at)}</span></div>
+                </div>
+            `;
+
+            Swal.fire({
+                title: 'รายละเอียด License',
+                html: detailsHtml,
+                icon: 'info',
+                showCancelButton: false,
+                showConfirmButton: true,
+                confirmButtonText: 'ปิด',
+                width: 700,
+                didOpen: () => {
+                    const popup = Swal.getPopup();
+                    if (popup) popup.style.maxWidth = '700px';
+                },
+            });
+        }
+
+        // ฟังก์ชันสำหรับจัดการการแสดง/ซ่อนเมนูนำทางตามสิทธิ์ของผู้ใช้
+        async function applySidebarPermissions() {
+            if (!currentUser || !currentUser.user_id || !currentUser.username) {
+                console.warn("User data not fully available for sidebar permissions update. Expected early redirect.");
+                return;
+            }
+
+            userNameDisplay.textContent = currentUser.username;
+            userDisplayTop.textContent = currentUser.username;
+
+            const menuLinks = {
+                'dashboard': document.querySelector('nav.panel-nav a[href="dashboard.html"]')?.closest('li'),
+                'assets': document.querySelector('nav.panel-nav a[href="manage.html"]')?.closest('li'),
+                'notes': document.querySelector('nav.panel-nav a[href="note.html"]')?.closest('li'),
+                'licenses': licenseLinkWrapperLeftPanel,
+                'member': memberLinkWrapperLeftPanel,
+                'history': historyLinkWrapperLeftPanel
+            };
+
+            try {
+                const response = await fetch(`api/get_user_permissions.php?user_id=${currentUser.user_id}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const userPermissions = result.data;
+                    for (const pageName in menuLinks) {
+                        const canAccess = userPermissions[pageName] === 1;
+                        const linkElement = menuLinks[pageName];
+                        if (linkElement) {
+                            if (canAccess) {
+                                linkElement.style.display = 'list-item';
+                            } else {
+                                linkElement.style.display = 'none';
+                            }
+                        }
+                    }
+                    const currentPageFileName = window.location.pathname.split('/').pop().replace('.html', '');
+                    if (userPermissions[currentPageFileName] === 0 && currentUser.role !== 'Admin') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ไม่ได้รับอนุญาต',
+                            text: 'สิทธิ์การเข้าถึงหน้านี้ของคุณได้ถูกเปลี่ยนแปลง.',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            if (userPermissions['dashboard'] === 1) {
+                                window.location.href = 'dashboard.html';
+                            } else {
+                                localStorage.removeItem('user');
+                                localStorage.removeItem('token');
+                                window.location.href = 'login.html';
+                            }
+                        });
+                    }
+                } else {
+                    console.error("Failed to load user permissions for sidebar:", result.message);
+                    if (memberLinkWrapperLeftPanel) memberLinkWrapperLeftPanel.style.display = 'none';
+                    if (historyLinkWrapperLeftPanel) historyLinkWrapperLeftPanel.style.display = 'none';
+                    if (licenseLinkWrapperLeftPanel) licenseLinkWrapperLeftPanel.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Network error fetching user permissions for sidebar:', error);
+                if (memberLinkWrapperLeftPanel) memberLinkWrapperLeftPanel.style.display = 'none';
+                if (historyLinkWrapperLeftPanel) historyLinkWrapperLeftPanel.style.display = 'none';
+                if (licenseLinkWrapperLeftPanel) licenseLinkWrapperLeftPanel.style.display = 'none';
+            }
+        }
+
+        // --- Event Listener เมื่อหน้าเว็บโหลดเสร็จสมบูรณ์ (DOMContentLoaded) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // สร้าง animation fade-in ให้กับการ์ด
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                const delay = parseInt(card.dataset.delay) || 0;
+                setTimeout(() => {
+                    card.classList.add('is-visible');
+                }, delay);
+            });
+
+            // อัปเดตข้อมูลผู้ใช้ในแถบเมนูและส่วนหัว
+            if (currentUser && currentUser.user_id && currentUser.username) {
+                userNameDisplay.textContent = currentUser.username;
+                userDisplayTop.textContent = currentUser.username;
+                applySidebarPermissions();
+            } else {
+                console.warn("User data not fully available after DOMContentLoaded for sidebar update. Expected early redirect.");
+            }
+
+            // ลบปุ่ม Apply Filters ออกจาก DOM
+            const applyLicenseFiltersBtn = document.getElementById('applyLicenseFiltersBtn');
+            if (applyLicenseFiltersBtn) {
+                 applyLicenseFiltersBtn.remove();
+            }
+            
+            // เพิ่ม Event Listeners สำหรับการค้นหาและกรองแบบเรียลไทม์
+            searchLicenseInput.addEventListener('input', applyLicenseFilters);
+            filterProductSelect.addEventListener('change', () => {
+                populateFilterTypeSelect(filterProductSelect.value); // อัปเดต sub-type
+                applyLicenseFilters();
+            });
+            filterTypeSelect.addEventListener('change', applyLicenseFilters);
+            
+            // Event Listener สำหรับปุ่มล้างตัวกรอง
+            clearLicenseFiltersBtn.addEventListener('click', clearLicenseFilters);
+
+            // Add License Button
+            addLicenseBtn.addEventListener('click', () => openLicenseModal());
+
+            // Modal Close Buttons
+            closeButton.addEventListener('click', closeLicenseModal);
+            cancelLicenseBtn.addEventListener('click', closeLicenseModal);
+            window.addEventListener('click', (event) => {
+                if (event.target == licenseModal) closeLicenseModal();
+            });
+
+            // Dynamic Product Sub Type in Modal
+            modalProductMainType.addEventListener('change', () => updateProductSubTypeDropdown(modalProductMainType.value));
+            setupOtherInputToggle(modalProductSubType, modalProductSubTypeText);
+            setupOtherInputToggle(modalUser1Department, modalUser1DepartmentText);
+            setupOtherInputToggle(modalUser2Department, modalUser2DepartmentText);
+
+            // Pagination Buttons
+            prevLicensePageBtn.addEventListener('click', () => {
+                if (currentLicensePage > 1) {
+                    currentLicensePage--;
+                    renderLicenses();
+                }
+            });
+            nextLicensePageBtn.addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredLicenses.length / licensesPerPage);
+                if (currentLicensePage < totalPages) {
+                    currentLicensePage++;
+                    renderLicenses();
+                }
+            });
+
+            // Event Delegation for Edit/Delete/View buttons in the table
+            licenseTableBody.addEventListener('click', async (event) => {
+                const target = event.target;
+                const clickedRow = target.closest('tr');
+                const licenseId = clickedRow ? clickedRow.dataset.id : null;
+
+                if (!licenseId) return;
+
+                if (currentUser && currentUser.role === 'Admin') {
+                    if (target.closest('.edit-license-btn')) {
+                        const licenseToEdit = allLicenses.find(lic => lic.license_id == licenseId);
+                        if (licenseToEdit) {
+                            openLicenseModal(licenseToEdit);
+                        } else {
+                            try {
+                                const response = await fetch(`api/get_license_by_id.php?license_id=${licenseId}`);
+                                const result = await response.json();
+                                if (result.success && result.data) { openLicenseModal(result.data); } else { Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูล License ที่ต้องการแก้ไข', 'error'); }
+                            } catch (err) { Swal.fire('ข้อผิดพลาด', 'ข้อผิดพลาดเครือข่ายในการดึงข้อมูล License: ' + err.message, 'error'); }
+                        }
+                    } else if (target.closest('.delete-license-btn')) {
+                        await confirmDeleteLicense(licenseId);
+                    } else if (clickedRow && !target.closest('button')) {
+                        await showLicenseDetailsPopup(licenseId);
+                    }
+                } else {
+                    Swal.fire('ไม่ได้รับอนุญาต', 'คุณไม่มีสิทธิ์ดำเนินการนี้', 'warning');
+                }
+            });
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    Swal.fire({
+                        title: 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'ใช่, ออกจากระบบ!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            localStorage.removeItem('user');
+                            localStorage.removeItem('token');
+                            Swal.fire({ title: 'ออกจากระบบแล้ว!', text: 'คุณออกจากระบบเรียบร้อยแล้ว.', icon: 'success', showConfirmButton: false, timer: 1500 }).then(() => { window.location.href = 'login.html'; });
+                        }
+                    });
+                });
+            }
+            
+            // เรียกใช้ฟังก์ชันหลักเมื่อหน้าเว็บโหลดเสร็จ
+            fetchLicenses();
+            fetchAndDisplayQuickStats();
+            applySidebarPermissions();
+        });
+    </script>
+</body>
+
+</html>

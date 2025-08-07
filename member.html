@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITOPPLUS - Manage Members</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        /*
+        * ส่วนของ CSS สำหรับจัดรูปแบบหน้า Manage Members
+        * ใช้ตัวแปร CSS (:root) เพื่อกำหนดสีและค่าต่างๆ ให้ง่ายต่อการแก้ไข
+        */
+        :root {
+            /* สีเขียวของบริษัท */
+            --company-green-light: #e8f5e9;
+            --company-green-main: #66bb6a;
+            --company-green-dark: #4caf50;
+            /* สีกลางๆ */
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --app-bg-light: #f4f7f6;
+            --card-bg: #ffffff;
+            /* สีของแถบเมนูด้านซ้าย (สีเข้ม) */
+            --panel-bg-dark: #2c3e50;
+            --panel-text-light: #ecf0f1;
+            --panel-active-bg: rgba(102, 187, 106, 0.15);
+            --panel-active-color: var(--company-green-main);
+            /* เงาสำหรับองค์ประกอบต่างๆ */
+            --shadow-subtle: 0 6px 20px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.1);
+            /* สีสำหรับปุ่มและสถานะ */
+            --color-blue: #3498db;
+            --color-orange: #f39c12;
+            --color-red: #e74c3c;
+            /* รัศมีขอบเพื่อความโค้งมน */
+            --border-radius-lg: 16px;
+            --border-radius-md: 12px;
+            --border-radius-sm: 8px;
+        }
+
+        body {
+            /* รูปแบบพื้นฐานของหน้าเว็บ */
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background-color: var(--app-bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .page-wrapper {
+            /* คอนเทนเนอร์หลักของทั้งหน้า */
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* แถบเมนูด้านซ้าย (Left Panel) */
+        .left-panel {
+            width: 280px;
+            min-width: 280px;
+            background-color: var(--panel-bg-dark);
+            color: var(--panel-text-light);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            box-shadow: var(--shadow-subtle);
+            z-index: 20;
+            border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: hidden;
+            top: 0;
+            left: 0;
+        }
+
+        .panel-header {
+            /* ส่วนหัวของแถบเมนู (โลโก้และชื่อ) */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .panel-logo {
+            /* จัดรูปแบบโลโก้ */
+            height: 45px;
+            width: auto;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
+        }
+
+        .panel-title {
+            /* จัดรูปแบบชื่อแอปพลิเคชัน */
+            font-size: 2.0rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .panel-nav {
+            /* ส่วนการนำทางหลัก */
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .panel-nav ul {
+            /* จัดรูปแบบรายการเมนู */
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .panel-nav li {
+            /* จัดรูปแบบรายการเมนูแต่ละรายการ */
+            margin-bottom: 6px;
+        }
+
+        .panel-nav a {
+            /* จัดรูปแบบลิงก์ในเมนู */
+            display: flex;
+            align-items: center;
+            color: var(--panel-text-light);
+            text-decoration: none;
+            padding: 14px 15px;
+            border-radius: var(--border-radius-sm);
+            font-size: 1.05rem;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+        }
+
+        .panel-nav a:hover {
+            /* จัดรูปแบบเมื่อเมาส์ชี้ที่ลิงก์ */
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--panel-active-color);
+            transform: translateX(8px);
+        }
+
+        .panel-nav a.active {
+            /* จัดรูปแบบสำหรับลิงก์ที่ใช้งานอยู่ */
+            background: var(--panel-active-bg);
+            color: var(--panel-active-color);
+            font-weight: 600;
+            transform: translateX(5px);
+        }
+
+        .panel-nav a i {
+            /* จัดรูปแบบไอคอนในเมนู */
+            margin-right: 18px;
+            font-size: 1.35rem;
+            width: 25px;
+            text-align: center;
+        }
+
+        .panel-quick-stats {
+            /* ส่วนสถิติย่อด้านล่างแถบเมนู */
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-left: 10px;
+            padding-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .panel-quick-stats h4 {
+            /* จัดรูปแบบหัวข้อสถิติย่อ */
+            color: #fff;
+            font-size: 1.15rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .stat-item {
+            /* จัดรูปแบบแต่ละรายการสถิติ */
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item i {
+            /* จัดรูปแบบไอคอนสถิติ */
+            font-size: 2rem;
+            color: var(--company-green-main);
+            width: 35px;
+            text-align: center;
+        }
+
+        .stat-item .stat-value {
+            /* จัดรูปแบบตัวเลขสถิติ */
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .stat-item .stat-label {
+            /* จัดรูปแบบคำอธิบายสถิติ */
+            font-size: 0.9rem;
+            color: var(--panel-text-light);
+        }
+
+        .panel-footer {
+            /* ส่วนท้ายของแถบเมนู (โปรไฟล์ผู้ใช้และปุ่มออกจากระบบ) */
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding-left: 10px;
+            padding-bottom: 50px;
+            flex-shrink: 0;
+        }
+
+        .user-profile {
+            /* จัดรูปแบบข้อมูลโปรไฟล์ผู้ใช้ */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--panel-text-light);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-profile .user-avatar {
+            /* จัดรูปแบบอวตารผู้ใช้ */
+            font-size: 2.2rem;
+            color: var(--company-green-main);
+        }
+
+        .logout-btn {
+            /* จัดรูปแบบปุ่มออกจากระบบ */
+            background-color: var(--company-green-main);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: var(--border-radius-md);
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-btn:hover {
+            /* จัดรูปแบบเมื่อเมาส์ชี้ที่ปุ่ม */
+            background-color: var(--company-green-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .logout-btn:active {
+            /* จัดรูปแบบเมื่อคลิกปุ่ม */
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* พื้นที่เนื้อหาหลัก (Main Content Area) */
+        .main-content-area {
+            flex-grow: 1;
+            padding: 40px;
+            background-color: var(--app-bg-light);
+            position: relative;
+            border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
+            margin-left: 320px;
+            z-index: 10;
+        }
+
+        .main-content-header {
+            /* ส่วนหัวของพื้นที่เนื้อหา */
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 20px;
+        }
+
+        .main-content-header h1 {
+            /* จัดรูปแบบหัวข้อหลัก */
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .main-content-header .user-display-top {
+            /* แสดงชื่อผู้ใช้ในส่วนหัว */
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: 1rem;
+            opacity: 0.9;
+            background-color: var(--card-bg);
+            padding: 8px 15px;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .main-content-header .user-display-top i {
+            /* จัดรูปแบบไอคอนผู้ใช้ในส่วนหัว */
+            font-size: 1.6rem;
+            color: var(--company-green-main);
+        }
+
+        .main-content-header .user-display-top span {
+            /* จัดรูปแบบชื่อผู้ใช้ในส่วนหัว */
+            color: var(--text-dark);
+        }
+
+        /* รูปแบบพื้นฐานของการ์ด */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-subtle);
+            padding: 30px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.4s ease, transform 0.4s ease;
+            opacity: 0;
+            transform: translateY(30px);
+            position: relative;
+        }
+
+        .card.is-visible {
+            /* คลาสสำหรับแสดงการ์ดด้วย animation */
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card:hover {
+            /* จัดรูปแบบเมื่อเมาส์ชี้ที่การ์ด */
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* --- รูปแบบเฉพาะของหน้า Member --- */
+        .member-controls {
+            /* ส่วนควบคุมสำหรับการค้นหาและกรองข้อมูล */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: flex-end;
+        }
+
+        .member-controls .input-group {
+            /* กลุ่มของ label และ input */
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .member-controls .input-group label {
+            /* จัดรูปแบบ label */
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+
+        .member-controls .input-group input[type="text"],
+        .member-controls .input-group select {
+            /* จัดรูปแบบ input และ select */
+            width: 90%;
+            padding: 12px 15px;
+            border: 1px solid #dfe6e9;
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            color: var(--text-dark);
+            background-color: #f9fbfa;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .member-controls .input-group input[type="text"]:focus,
+        .member-controls .input-group select:focus {
+            /* จัดรูปแบบเมื่อ input/select ถูกเลือก (focus) */
+            border-color: var(--company-green-main);
+            box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.2);
+            outline: none;
+        }
+
+        .action-buttons {
+            /* กลุ่มปุ่มสำหรับเพิ่ม/กรอง/ล้างข้อมูล */
+            display: flex;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            /* รูปแบบพื้นฐานของปุ่ม */
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            justify-content: center;
+        }
+
+        .btn.primary {
+            /* ปุ่มหลัก (สีเขียว) */
+            background-color: var(--company-green-main);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn.primary:hover {
+            background-color: var(--company-green-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn.secondary {
+            /* ปุ่มรอง (สีเทา) */
+            background-color: #ecf0f1;
+            color: var(--text-dark);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn.secondary:hover {
+            background-color: #dfe6e9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn.danger {
+            /* ปุ่มอันตราย (สีแดง) */
+            background-color: var(--color-red);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn.danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Table Styles for Members */
+        .member-table-container {
+            /* คอนเทนเนอร์สำหรับตาราง */
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .member-table {
+            /* ตารางแสดงรายการสมาชิก */
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            min-width: 600px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .member-table th,
+        .member-table td {
+            /* หัวตารางและเซลล์ข้อมูล */
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f4f7;
+        }
+
+        .member-table th {
+            /* หัวตาราง */
+            background-color: #f7f9fa;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .member-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .member-table tbody tr:hover {
+            /* เมื่อเมาส์ชี้ที่แถว */
+            background-color: var(--company-green-light);
+        }
+
+        .member-table .action-buttons-cell {
+            /* คอลัมน์ปุ่ม Actions */
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .member-table .action-buttons-cell .btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .pagination {
+            /* การแบ่งหน้า (Pagination) */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .pagination button {
+            background-color: var(--card-bg);
+            border: 1px solid #dfe6e9;
+            border-radius: var(--border-radius-sm);
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-dark);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: var(--company-green-light);
+            border-color: var(--company-green-main);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+
+        /* Modal Styles (สำหรับเพิ่ม/แก้ไข Member) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.is-open {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: auto;
+            padding: 30px;
+            border-radius: var(--border-radius-lg);
+            width: 90%;
+            max-width: 600px;
+            box-shadow: var(--shadow-hover);
+            position: relative;
+            transform: translateY(-50px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .modal.is-open .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--text-dark);
+        }
+
+        .close-button {
+            color: var(--text-light);
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--color-red);
+            text-decoration: none;
+        }
+
+        .modal-body .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-body .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+
+        .modal-body .form-group input[type="text"],
+        .modal-body .form-group input[type="password"],
+        .modal-body .form-group select {
+            width: 95%;
+            padding: 12px 15px;
+            border: 1px solid #dfe6e9;
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            color: var(--text-dark);
+            background-color: #f9fbfa;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .modal-body .form-group input[type="text"]:focus,
+        .modal-body .form-group input[type="password"]:focus,
+        .modal-body .form-group select:focus {
+            border-color: var(--company-green-main);
+            box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.2);
+            outline: none;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        /* NEW: Styles for multi-step modal */
+        .modal-body .step-content {
+            display: none;
+        }
+
+        .modal-body .step-content.active {
+            display: block;
+        }
+
+        .modal-footer .step-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .modal-footer .step-buttons .btn {
+            flex-grow: 1;
+            margin: 0 5px;
+        }
+
+        .modal-footer .step-buttons .btn:first-child {
+            margin-left: 0;
+        }
+
+        .modal-footer .step-buttons .btn:last-child {
+            margin-right: 0;
+        }
+
+        .modal-footer .step-buttons .btn.hidden {
+            display: none;
+        }
+
+        /* Custom CSS for modal header step counter */
+        .modal-header .step-counter {
+            font-size: 0.8em;
+            color: var(--text-light);
+            vertical-align: middle;
+            order: 1;
+            margin-left: auto;
+            margin-right: 15px;
+            align-self: center;
+        }
+
+        .modal-header h3 {
+            order: 0;
+        }
+
+        .modal-header .close-button {
+            order: 2;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 1024px) {
+            .left-panel {
+                width: 250px;
+                min-width: 250px;
+                padding: 25px 15px;
+            }
+
+            .panel-nav a {
+                font-size: 1rem;
+            }
+
+            .panel-nav a i {
+                font-size: 1.15rem;
+            }
+
+            .main-content-area {
+                padding: 30px;
+                margin-left: -15px;
+            }
+
+            .main-content-header h1 {
+                font-size: 2.8rem;
+            }
+
+            .main-content-header .user-display-top {
+                font-size: 0.95rem;
+            }
+
+            .main-content-header .user-display-top i {
+                font-size: 1.4rem;
+            }
+
+            .card {
+                padding: 25px;
+            }
+
+            .member-table th,
+            .member-table td {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .member-table .action-buttons-cell .btn {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+
+            .modal-content {
+                padding: 25px;
+            }
+
+            .modal-header h3 {
+                font-size: 1.6rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .left-panel {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-out;
+                border-radius: 0;
+            }
+
+            .left-panel.active {
+                transform: translateX(0%);
+            }
+
+            .main-content-area {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .main-content-header {
+                text-align: left;
+                margin-top: 70px;
+                margin-bottom: 25px;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-right: 0;
+            }
+
+            .main-content-header h1 {
+                font-size: 2.4rem;
+            }
+
+            .main-content-header .user-display-top {
+                margin-top: 15px;
+                align-self: stretch;
+                justify-content: center;
+                padding: 10px;
+            }
+
+            .member-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .member-controls .input-group {
+                width: 100%;
+                min-width: unset;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .modal-header h3 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <aside class="left-panel" id="leftPanel">
+            <div class="panel-header">
+                <span class="panel-title">ITOPPLUS</span>
+            </div>
+            <nav class="panel-nav">
+                <ul>
+                    <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a></li>
+                    <li><a href="manage.html"><i class="fa-solid fa-boxes-stacked"></i> <span>Assets</span></a></li>
+                    <li><a href="note.html"><i class="fa-solid fa-note-sticky"></i> <span>Notes</span></a></li>
+                    <li id="licenseLinkWrapperLeftPanel"><a href="license.html"><i class="fa-solid fa-key"></i>
+                            <span>Licenses</span></a></li>
+                    <li id="memberLinkWrapperLeftPanel"><a href="member.html" class="active"><i
+                                class="fa-solid fa-users"></i> <span>Member</span></a></li>
+                    <li id="historyLinkWrapperLeftPanel" style="display: none;"><a href="history.html"><i
+                                class="fa-solid fa-history"></i> <span>History</span></a></li>
+                </ul>
+            </nav>
+            <div class="panel-quick-stats">
+                <h4>Quick Stats</h4>
+                <div class="stat-item">
+                    <i class="fa-solid fa-arrow-up-right-dots"></i>
+                    <div>
+                        <span class="stat-value" id="assetsAddedMonth">0</span>
+                        <span class="stat-label">Assets Added</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <i class="fa-solid fa-arrow-down-left-dots"></i>
+                    <div>
+                        <span class="stat-value" id="assetsRetiredMonth">0</span>
+                        <span class="stat-label">Assets Retired</span>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="user-profile">
+                    <i class="fa-solid fa-user-circle user-avatar"></i>
+                    <span id="userNameDisplay">Guest User</span>
+                </div>
+                <button class="logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content-area">
+            <header class="main-content-header">
+                <h1>Manage Members</h1>
+                <div class="user-display-top">
+                    <span id="userDisplayTop">Guest User</span>
+                    <i class="fa-solid fa-user-circle"></i>
+                </div>
+            </header>
+
+            <div class="members-section card is-visible" data-delay="0">
+                <h3>All System Members</h3>
+                <div class="member-controls">
+                    <div class="input-group">
+                        <label for="searchMember">Search by Name/Employee ID:</label>
+                        <input type="text" id="searchMember" placeholder="Search by keyword">
+                    </div>
+                    <div class="input-group">
+                        <label for="filterRole">Filter by Role:</label>
+                        <select id="filterRole">
+                            <option value="">All Roles</option>
+                            <option value="Admin">Admin</option>
+                            <option value="User">User</option>
+                        </select>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn primary" id="addMemberBtn"><i class="fa-solid fa-user-plus"></i> Add
+                            Member</button>
+                        <button class="btn secondary" id="applyMemberFiltersBtn"><i class="fa-solid fa-filter"></i>
+                            Apply Filter</button>
+                        <button class="btn secondary" id="clearMemberFiltersBtn"><i class="fa-solid fa-xmark"></i> Clear
+                            Filter</button>
+                    </div>
+                </div>
+                <div class="member-table-container">
+                    <table class="member-table">
+                        <thead>
+                            <tr>
+                                <th>Emp ID</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Last Login</th>
+                                <th text=>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="memberTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 20px;">No members found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <button id="prevMemberPageBtn" disabled><i class="fa-solid fa-chevron-left"></i> Previous</button>
+                    <span id="currentMemberPageDisplay">Page 1 of 1</span>
+                    <button id="nextMemberPageBtn" disabled>Next <i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="memberModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Member</h3>
+                <span id="modalStepCounter" class="step-counter">(1/2)</span>
+                <span class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="memberForm" onsubmit="return false;">
+                    <input type="hidden" id="memberId" name="member_id">
+
+                    <div id="memberStep1" class="step-content active">
+                        <div class="form-group">
+                            <label for="empId">Employee ID:</label>
+                            <input type="text" id="empId" name="emp_id" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="memberName">Name:</label>
+                            <input type="text" id="memberName" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="memberPassword">Password:</label>
+                            <input type="password" id="memberPassword" name="password_hash" required>
+                        </div>
+                    </div>
+
+                    <div id="memberStep2" class="step-content">
+                        <div class="form-group">
+                            <label for="memberRole">Role:</label>
+                            <select id="memberRole" name="role" required>
+                                <option value="User">User</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Page Permissions:</label>
+                            <div id="permissionsCheckboxes"
+                                style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px;">
+                                <div class="permission-item"><label><input type="checkbox" data-page="dashboard"
+                                            checked> Dashboard</label></div>
+                                <div class="permission-item"><label><input type="checkbox" data-page="assets" checked>
+                                            Assets</label></div>
+                                <div class="permission-item"><label><input type="checkbox" data-page="notes" checked>
+                                            Notes</label></div>
+                                <div class="permission-item"><label><input type="checkbox" data-page="licenses">
+                                            Licenses</label></div>
+                                <div class="permission-item"><label><input type="checkbox" data-page="member">
+                                            Member</label></div>
+                                <div class="permission-item"><label><input type="checkbox" data-page="history">
+                                            History</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <div class="step-buttons">
+                            <button type="button" class="btn secondary" id="prevStepBtn"><i
+                                    class="fa-solid fa-chevron-left"></i> Previous</button>
+                            <button type="button" class="btn primary" id="nextStepBtn">Next <i
+                                    class="fa-solid fa-chevron-right"></i></button>
+                            <button type="button" class="btn secondary" id="cancelMemberBtn">Cancel</button>
+                            <button type="submit" class="btn primary hidden" id="saveMemberBtn"><i
+                                    class="fa-solid fa-save"></i> Save Member</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        // --- Global Variables (ประกาศตัวแปร DOM Elements และ State Variables ที่จำเป็นใน Global Scope) ---
+        const memberTableBody = document.getElementById('memberTableBody');
+        const searchMemberInput = document.getElementById('searchMember');
+        const filterRoleSelect = document.getElementById('filterRole');
+        const addMemberBtn = document.getElementById('addMemberBtn');
+        const applyMemberFiltersBtn = document.getElementById('applyMemberFiltersBtn');
+        const clearMemberFiltersBtn = document.getElementById('clearMemberFiltersBtn');
+        const prevMemberPageBtn = document.getElementById('prevMemberPageBtn');
+        const nextMemberPageBtn = document.getElementById('nextMemberPageBtn');
+        const currentMemberPageDisplay = document.getElementById('currentMemberPageDisplay');
+        const memberModal = document.getElementById('memberModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeButton = memberModal.querySelector('.close-button');
+        const memberForm = document.getElementById('memberForm');
+        const memberIdInput = document.getElementById('memberId');
+        const empIdInput = document.getElementById('empId');
+        const memberNameInput = document.getElementById('memberName');
+        const memberPasswordInput = document.getElementById('memberPassword');
+        const memberRoleSelect = document.getElementById('memberRole');
+        const cancelMemberBtn = document.getElementById('cancelMemberBtn');
+        const permissionsCheckboxesDiv = document.getElementById('permissionsCheckboxes');
+        const memberStep1 = document.getElementById('memberStep1');
+        const memberStep2 = document.getElementById('memberStep2');
+        const nextStepBtn = document.getElementById('nextStepBtn');
+        const prevStepBtn = document.getElementById('prevStepBtn');
+        const saveMemberBtn = document.getElementById('saveMemberBtn');
+        const modalStepCounter = document.getElementById('modalStepCounter');
+        
+        // State variables
+        let currentModalStep = 1;
+        let tempMemberData = {};
+        let membersPerPage = 5;
+        let currentMemberPage = 1;
+        let filteredMembers = [];
+        let allMembers = [];
+        let isEditMode = false;
+
+        // สำหรับ Quick Stats และ User Info (อยู่ใน Navbar ซ้าย) - ต้องประกาศใน global scope เช่นกัน
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userDisplayTop = document.querySelector('.main-content-header .user-display-top span');
+        const memberLinkWrapperLeftPanel = document.getElementById('memberLinkWrapperLeftPanel');
+        const historyLinkWrapperLeftPanel = document.getElementById('historyLinkWrapperLeftPanel');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const licenseLinkWrapperLeftPanel = document.getElementById('licenseLinkWrapperLeftPanel');
+
+        // --- Authentication and Authorization Check (ทำนอก DOMContentLoaded เพื่อให้ทำงานเร็วที่สุด) ---
+        let currentUser = null;
+        const currentUserString = localStorage.getItem('user');
+
+        if (!currentUserString) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'เซสชันหมดอายุ',
+                text: 'กรุณาเข้าสู่ระบบอีกครั้ง.',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                window.location.href = 'login.html';
+            });
+            document.body.innerHTML = '';
+            throw new Error("User not logged in. Redirecting...");
+        } else {
+            try {
+                currentUser = JSON.parse(currentUserString);
+                if (!currentUser || !currentUser.user_id || !currentUser.username || !currentUser.role) {
+                    throw new Error("Invalid user data in localStorage.");
+                }
+
+                if (currentUser.role !== 'Admin') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ไม่ได้รับอนุญาต',
+                        text: 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้.',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.href = 'dashboard.html';
+                    });
+                    document.body.innerHTML = '';
+                    throw new Error("Unauthorized access. Redirecting...");
+                }
+
+            } catch (e) {
+                console.error("Authentication/Authorization Error:", e.message);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'เซสชันหมดอายุ',
+                    text: 'ข้อมูลผู้ใช้เสียหาย กรุณาเข้าสู่ระบบอีกครั้ง.',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.href = 'login.html';
+                });
+                document.body.innerHTML = '';
+                throw e;
+            }
+        }
+
+
+        // --- Helper Functions ---
+
+        // ฟังก์ชันสำหรับดึงและแสดงสถิติย่อในแถบเมนู
+        async function fetchAndDisplayQuickStats() {
+            try {
+                const response = await fetch('api/get_dashboard_stats.php');
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('assetsAddedMonth').textContent = result.data.assets_added_month;
+                    document.getElementById('assetsRetiredMonth').textContent = result.data.assets_retired_month;
+                } else {
+                    console.error('Error fetching quick stats:', result.message);
+                }
+            } catch (error) {
+                console.error('Network or parsing error fetching quick stats:', error);
+            }
+        }
+
+        // ฟังก์ชันสำหรับดึงข้อมูลสมาชิกทั้งหมดจากเซิร์ฟเวอร์
+        async function fetchMembersFromServer() {
+            memberTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">กำลังโหลดข้อมูลสมาชิก...</td></tr>`;
+            try {
+                const response = await fetch('api/get_members.php');
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                }
+                const data = await response.json();
+
+                if (data.success && Array.isArray(data.data)) {
+                    allMembers = data.data;
+                } else if (Array.isArray(data)) {
+                    allMembers = data;
+                } else {
+                    console.error("Invalid data format from get_members.php:", data);
+                    allMembers = [];
+                }
+
+                applyMemberFilters();
+
+            } catch (err) {
+                memberTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color:red;">ไม่สามารถโหลดข้อมูลสมาชิกได้ (ข้อผิดพลาดเครือข่าย: ${err.message})</td></tr>`;
+                console.error("Error fetching members:", err);
+            }
+        }
+
+        // ฟังก์ชันสำหรับแสดงผลข้อมูลสมาชิกในตาราง
+        function renderMembers() {
+            memberTableBody.innerHTML = '';
+            const startIndex = (currentMemberPage - 1) * membersPerPage;
+            const endIndex = startIndex + membersPerPage;
+            const membersToRender = filteredMembers.slice(startIndex, endIndex);
+
+            if (membersToRender.length === 0) {
+                memberTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">No members found matching your criteria.</td></tr>`;
+                currentMemberPageDisplay.textContent = 'Page 0 of 0';
+                prevMemberPageBtn.disabled = true;
+                nextMemberPageBtn.disabled = true;
+                return;
+            }
+
+            membersToRender.forEach(member => {
+                const row = memberTableBody.insertRow();
+                row.setAttribute('data-id', member.user_id);
+                row.innerHTML = `
+                    <td>${member.emp_id || 'N/A'}</td>
+                    <td>${member.username || 'N/A'}</td>
+                    <td><span class="role-badge role-${member.role || 'User'}">${member.role || 'N/A'}</span></td>
+                    <td>${member.last_login || 'N/A'}</td>
+                    <td class="action-buttons-cell">
+                        <button class="btn secondary edit-member-btn" data-id="${member.user_id}"><i class="fa-solid fa-edit"></i> Edit</button>
+                        <button class="btn danger delete-member-btn" data-id="${member.user_id}"><i class="fa-solid fa-user-minus"></i> Delete</button>
+                    </td>
+                `;
+                memberTableBody.appendChild(row);
+            });
+            updateMemberPaginationControls();
+        }
+
+        // ฟังก์ชันสำหรับกรองข้อมูลจาก 'allMembers' ตามเงื่อนไขที่เลือก
+        function applyMemberFilters() {
+            const searchTerm = searchMemberInput.value.toLowerCase();
+            const filterRole = filterRoleSelect.value;
+
+            filteredMembers = allMembers.filter(member => {
+                const matchesSearch = searchTerm === '' ||
+                    (member.username && member.username.toLowerCase().includes(searchTerm)) ||
+                    (member.emp_id && member.emp_id.toLowerCase().includes(searchTerm));
+                const matchesRole = filterRole === '' || member.role === filterRole;
+                return matchesSearch && matchesRole;
+            });
+            currentMemberPage = 1;
+            renderMembers();
+        }
+
+        // ฟังก์ชันสำหรับล้างตัวกรองทั้งหมด
+        function clearMemberFilters() {
+            searchMemberInput.value = '';
+            filterRoleSelect.value = '';
+            applyMemberFilters();
+        }
+
+        // ฟังก์ชันสำหรับอัปเดตสถานะของปุ่ม Pagination
+        function updateMemberPaginationControls() {
+            const totalPages = Math.ceil(filteredMembers.length / membersPerPage);
+            currentMemberPageDisplay.textContent = `Page ${totalPages > 0 ? currentMemberPage : 0} of ${totalPages}`;
+            prevMemberPageBtn.disabled = currentMemberPage === 1;
+            nextMemberPageBtn.disabled = currentMemberPage === totalPages || totalPages === 0;
+        }
+
+        // --- Multi-step Modal Functions ---
+
+        // แสดง Modal ขั้นตอนที่กำหนด
+        function showStep(stepNum) {
+            memberStep1.classList.remove('active');
+            memberStep2.classList.remove('active');
+
+            prevStepBtn.classList.add('hidden');
+            nextStepBtn.classList.add('hidden');
+            saveMemberBtn.classList.add('hidden');
+            cancelMemberBtn.classList.remove('hidden');
+
+            if (stepNum === 1) {
+                memberStep1.classList.add('active');
+                nextStepBtn.classList.remove('hidden');
+                modalTitle.textContent = isEditMode ? 'Edit Member' : 'Add New Member';
+                modalStepCounter.textContent = '(1/2)';
+            } else if (stepNum === 2) {
+                memberStep2.classList.add('active');
+                prevStepBtn.classList.remove('hidden');
+                saveMemberBtn.classList.remove('hidden');
+                modalTitle.textContent = isEditMode ? 'Edit Member' : 'Add New Member';
+                modalStepCounter.textContent = '(2/2)';
+                togglePermissionCheckboxes(memberRoleSelect.value === 'User');
+            }
+            currentModalStep = stepNum;
+        }
+
+        // ไปยัง Modal ขั้นตอนถัดไป
+        function nextStep() {
+            const empId = empIdInput.value.trim();
+            const memberName = memberNameInput.value.trim();
+            const memberPassword = memberPasswordInput.value.trim();
+
+            if (!empId || !memberName) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ข้อมูลไม่ครบถ้วน',
+                    text: 'กรุณากรอก Employee ID และ Name ให้ครบถ้วน',
+                });
+                return;
+            }
+
+            if (!isEditMode && !memberPassword) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ข้อมูลไม่ครบถ้วน',
+                    text: 'กรุณากรอก Password สำหรับสมาชิกใหม่',
+                });
+                return;
+            }
+            if (!isEditMode && memberPassword.length < 3) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'รหัสผ่านสั้นเกินไป',
+                    text: 'รหัสผ่านควรมีอย่างน้อย 3 ตัวอักษร',
+                });
+                return;
+            }
+
+            tempMemberData.emp_id = empId;
+            tempMemberData.username = memberName;
+            tempMemberData.password = memberPassword;
+            showStep(2);
+        }
+
+        // ย้อนกลับไปยัง Modal ขั้นตอนก่อนหน้า
+        function prevStep() {
+            showStep(1);
+        }
+
+        // เปิด Modal สำหรับเพิ่ม/แก้ไขสมาชิก
+        function openMemberModal(member = null) {
+            memberModal.classList.add('is-open');
+            memberForm.reset();
+            if (Swal.getPopup()) {
+                Swal.resetValidationMessage();
+            }
+
+            tempMemberData = {};
+            isEditMode = (member !== null);
+            currentModalStep = 1;
+
+            if (isEditMode) {
+                modalTitle.textContent = 'Edit Member';
+                memberIdInput.value = member.user_id;
+                empIdInput.value = member.emp_id;
+                memberNameInput.value = member.username;
+                memberPasswordInput.value = '';
+                memberPasswordInput.placeholder = 'เว้นว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่าน';
+                memberPasswordInput.required = false;
+
+                memberRoleSelect.value = member.role;
+                fetchPermissionsForUser(member.user_id);
+                empIdInput.disabled = true;
+            } else {
+                modalTitle.textContent = 'Add New Member';
+                memberIdInput.value = '';
+                empIdInput.disabled = false;
+                memberPasswordInput.required = true;
+                memberPasswordInput.placeholder = '';
+                memberRoleSelect.value = 'User';
+                resetPermissionsCheckboxes();
+                togglePermissionCheckboxes(true);
+            }
+            showStep(currentModalStep);
+        }
+
+        // ปิด Modal
+        function closeMemberModal() {
+            memberModal.classList.remove('is-open');
+            memberForm.reset();
+            empIdInput.disabled = false;
+            currentModalStep = 1;
+            isEditMode = false;
+            resetPermissionsCheckboxes();
+            memberStep1.classList.add('active');
+            memberStep2.classList.remove('active');
+            nextStepBtn.classList.remove('hidden');
+            prevStepBtn.classList.add('hidden');
+            saveMemberBtn.classList.add('hidden');
+            modalStepCounter.textContent = '(1/2)';
+        }
+
+        // ส่งข้อมูลฟอร์มสมาชิกไปยังเซิร์ฟเวอร์
+        async function submitMemberForm() {
+            const emp_id = tempMemberData.emp_id;
+            const username = tempMemberData.username;
+            const password = tempMemberData.password;
+
+            const user_id = memberIdInput.value;
+            const role = memberRoleSelect.value;
+            const permissions = {};
+            document.querySelectorAll('#permissionsCheckboxes input[type="checkbox"]').forEach(checkbox => {
+                permissions[checkbox.dataset.page] = checkbox.checked ? 1 : 0;
+            });
+
+            if (role === 'User') {
+                if (permissions['member'] === 1 || permissions['history'] === 1 || permissions['licenses'] === 1) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ข้อผิดพลาด',
+                        text: 'ผู้ใช้ Role "User" ไม่สามารถมีสิทธิ์เข้าถึงหน้า Licenses, Member หรือ History ได้'
+                    });
+                    return;
+                }
+            }
+
+            const dataToSend = {
+                user_id: user_id || null,
+                emp_id: emp_id,
+                username: username,
+                password: isEditMode && password === '' ? null : password,
+                role: role,
+                permissions: permissions,
+            };
+
+            const currentAdminUser = currentUser;
+            if (currentAdminUser && currentAdminUser.user_id) {
+                dataToSend.current_user_id = currentAdminUser.user_id;
+                dataToSend.current_username = currentAdminUser.username;
+            } else {
+                dataToSend.current_user_id = null;
+                dataToSend.current_username = "Unknown Admin";
+            }
+
+            let url = isEditMode ? 'api/update_member.php' : 'api/add_member.php';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dataToSend)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Network response not OK. Status:', response.status, 'Body:', errorText);
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        throw new Error(errorJson.message || `Server responded with status ${response.status}`);
+                    } catch (e) {
+                        throw new Error(`HTTP error! status: ${response.status}. Raw response: ${errorText}`);
+                    }
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: isEditMode ? 'แก้ไขข้อมูลสำเร็จ' : 'เพิ่มสมาชิกสำเร็จ'
+                    });
+                    closeMemberModal();
+                    fetchMembersFromServer();
+                    fetchAndDisplayQuickStats();
+                    if (currentAdminUser && currentAdminUser.user_id == user_id) {
+                        const updatedUserResponse = await fetch(`api/get_user_by_id.php?user_id=${currentAdminUser.user_id}`);
+                        if (updatedUserResponse.ok) {
+                            const updatedUserData = await updatedUserResponse.json();
+                            if (updatedUserData.success) {
+                                localStorage.setItem('user', JSON.stringify(updatedUserData.data));
+                                applySidebarPermissions();
+                                if (updatedUserData.data.role !== 'Admin' && window.location.pathname.includes('member.html')) {
+                                    Swal.fire({
+                                        icon: 'info',
+                                        title: 'บทบาทเปลี่ยน',
+                                        text: 'บทบาทของคุณถูกเปลี่ยน คุณจะถูกเปลี่ยนหน้า.',
+                                        showConfirmButton: false,
+                                        timer: 2000
+                                    }).then(() => {
+                                        window.location.href = 'dashboard.html';
+                                    });
+                                }
+                            }
+                        } else {
+                            console.error("Failed to re-fetch current user data after update.");
+                        }
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        text: result.message || 'ไม่สามารถบันทึกข้อมูลสมาชิกได้'
+                    });
+                }
+            } catch (error) {
+                console.error("Error submitting member form:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+                    text: error.message || 'ไม่สามารถบันทึกข้อมูลสมาชิกได้'
+                });
+            }
+
+        }
+
+        // ฟังก์ชันสำหรับยืนยันการลบสมาชิก
+        async function confirmDeleteMember(memberId) {
+            console.log('--- Attempting to delete member ---');
+            console.log('Member ID received by confirmDeleteMember:', memberId);
+
+            if (!memberId) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่พบรหัสสมาชิกที่ต้องการลบ (ID เป็นค่าว่างหรือไม่ถูกต้อง)', 'error');
+                console.error('Error: memberId is invalid or empty:', memberId);
+                return;
+            }
+
+            const currentLoggedUser = currentUser;
+            if (currentLoggedUser && currentLoggedUser.user_id == memberId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ไม่สามารถลบตัวเองได้!',
+                    text: 'ไม่สามารถลบบัญชีที่คุณกำลังเข้าสู่ระบบอยู่ได้.',
+                    confirmButtonText: 'รับทราบ'
+                });
+                return;
+            }
+
+            const result = await Swal.fire({
+                title: 'ยืนยันการลบสมาชิก?',
+                text: 'การดำเนินการนี้ไม่สามารถยกเลิกได้ คุณแน่ใจหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#aaa',
+                confirmButtonText: 'ใช่, ลบเลย!',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    let current_user_id_for_log = null;
+                    let current_username_for_log = "Unknown Admin";
+                    if (currentUser && currentUser.user_id) {
+                        current_user_id_for_log = currentUser.user_id;
+                        current_username_for_log = currentUser.username;
+                    }
+
+                    const response = await fetch('api/delete_member.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            user_id: memberId,
+                            current_user_id: current_user_id_for_log,
+                            current_username: current_username_for_log
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Network response not ok:', response.status, errorText);
+                        try {
+                            const errorJson = JSON.parse(errorText);
+                            throw new Error(errorJson.message || `Server responded with status ${response.status}`);
+                        } catch (e) {
+                            throw new Error(`HTTP error! status: ${response.status}. Raw response: ${errorText}`);
+                        }
+                    }
+
+                    const data = await response.json();
+                    console.log('Response from delete_member.php:', data);
+
+                    if (data.success) {
+                        Swal.fire('สำเร็จ!', data.message, 'success').then(() => {
+                            allMembers = allMembers.filter(member => member.user_id != memberId);
+                            applyMemberFilters();
+                            fetchAndDisplayQuickStats();
+                            if (current_user_id_for_log == memberId) {
+                                localStorage.removeItem('user');
+                                localStorage.removeItem('token');
+                                window.location.href = 'login.html';
+                            }
+                        });
+                    } else {
+                        Swal.fire('เกิดข้อผิดพลาด', data.message, 'error');
+                    }
+                } catch (err) {
+                    console.error("Error deleting member (frontend catch):", err);
+                    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบสมาชิกได้: ' + err.message, 'error');
+                }
+            }
+        }
+
+        // ดึงสิทธิ์ของผู้ใช้สำหรับ Modal แก้ไข
+        async function fetchPermissionsForUser(userId) {
+            try {
+                const response = await fetch(`api/get_user_permissions.php?user_id=${userId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.success && result.data) {
+                    populatePermissionsCheckboxes(result.data);
+                } else {
+                    console.error("Failed to fetch user permissions:", result.message);
+                    resetPermissionsCheckboxes();
+                }
+            } catch (error) {
+                console.error("Network error fetching user permissions:", error);
+                resetPermissionsCheckboxes();
+            }
+        }
+
+        // แสดงสิทธิ์ใน checkbox ของ Modal
+        function populatePermissionsCheckboxes(permissions) {
+            const allPages = ['dashboard', 'assets', 'notes', 'licenses', 'member', 'history'];
+            allPages.forEach(page => {
+                const permissionItemDiv = document.querySelector(`#permissionsCheckboxes div.permission-item label input[data-page="${page}"]`)?.closest('.permission-item');
+                const checkbox = permissionItemDiv?.querySelector('input[type="checkbox"]');
+
+                if (checkbox && permissionItemDiv) {
+                    checkbox.checked = permissions[page] === 1;
+                }
+            });
+            const selectedRole = memberRoleSelect.value;
+            togglePermissionCheckboxes(selectedRole === 'User');
+        }
+
+        // รีเซ็ต checkbox สิทธิ์
+        function resetPermissionsCheckboxes() {
+            document.querySelectorAll('#permissionsCheckboxes input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.disabled = false;
+                checkbox.closest('.permission-item').style.display = 'flex';
+            });
+            document.querySelector(`#permissionsCheckboxes input[data-page="dashboard"]`).checked = true;
+            document.querySelector(`#permissionsCheckboxes input[data-page="assets"]`).checked = true;
+            document.querySelector(`#permissionsCheckboxes input[data-page="notes"]`).checked = true;
+            document.querySelector(`#permissionsCheckboxes input[data-page="licenses"]`).checked = false;
+            document.querySelector(`#permissionsCheckboxes input[data-page="member"]`).checked = false;
+            document.querySelector(`#permissionsCheckboxes input[data-page="history"]`).checked = false;
+        }
+
+        // เปิด/ปิด checkbox ตาม Role
+        function togglePermissionCheckboxes(hideRestricted) {
+            document.querySelectorAll('#permissionsCheckboxes .permission-item').forEach(permissionItemDiv => {
+                const checkbox = permissionItemDiv.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    if (checkbox.dataset.page === 'member' || checkbox.dataset.page === 'history' || checkbox.dataset.page === 'licenses') {
+                        if (hideRestricted) {
+                            permissionItemDiv.style.display = 'none';
+                            checkbox.checked = false;
+                        } else {
+                            permissionItemDiv.style.display = 'flex';
+                            checkbox.disabled = false;
+                        }
+                    } else {
+                        permissionItemDiv.style.display = 'flex';
+                        checkbox.disabled = false;
+                    }
+                }
+            });
+        }
+
+        // ฟังก์ชันสำหรับจัดการการแสดง/ซ่อนเมนูนำทางตามสิทธิ์ของผู้ใช้
+        async function applySidebarPermissions() {
+            if (!currentUser || !currentUser.user_id || !currentUser.username) {
+                console.warn("User data not fully available for sidebar permissions update. Expected early redirect.");
+                return;
+            }
+
+            userNameDisplay.textContent = currentUser.username;
+            userDisplayTop.textContent = currentUser.username;
+
+            const menuLinks = {
+                'dashboard': document.querySelector('nav.panel-nav a[href="dashboard.html"]')?.closest('li'),
+                'assets': document.querySelector('nav.panel-nav a[href="manage.html"]')?.closest('li'),
+                'notes': document.querySelector('nav.panel-nav a[href="note.html"]')?.closest('li'),
+                'licenses': licenseLinkWrapperLeftPanel,
+                'member': memberLinkWrapperLeftPanel,
+                'history': historyLinkWrapperLeftPanel
+            };
+
+            try {
+                const response = await fetch(`api/get_user_permissions.php?user_id=${currentUser.user_id}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const userPermissions = result.data;
+                    for (const pageName in menuLinks) {
+                        const canAccess = userPermissions[pageName] === 1;
+                        const linkElement = menuLinks[pageName];
+                        if (linkElement) {
+                            if (canAccess) {
+                                linkElement.style.display = 'list-item';
+                            } else {
+                                linkElement.style.display = 'none';
+                            }
+                        }
+                    }
+                    const currentPageFileName = window.location.pathname.split('/').pop().replace('.html', '');
+                    if (currentUser.role !== 'Admin' && userPermissions[currentPageFileName] === 0) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ไม่ได้รับอนุญาต',
+                            text: 'สิทธิ์การเข้าถึงหน้านี้ของคุณได้ถูกเปลี่ยนแปลง.',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            if (userPermissions['dashboard'] === 1) {
+                                window.location.href = 'dashboard.html';
+                            } else {
+                                localStorage.removeItem('user');
+                                localStorage.removeItem('token');
+                                window.location.href = 'login.html';
+                            }
+                        });
+                    }
+
+                } else {
+                    console.error("Failed to load user permissions for sidebar:", result.message);
+                    if (memberLinkWrapperLeftPanel) memberLinkWrapperLeftPanel.style.display = 'none';
+                    if (historyLinkWrapperLeftPanel) historyLinkWrapperLeftPanel.style.display = 'none';
+                    if (licenseLinkWrapperLeftPanel) licenseLinkWrapperLeftPanel.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Network error fetching user permissions for sidebar:', error);
+                if (memberLinkWrapperLeftPanel) memberLinkWrapperLeftPanel.style.display = 'none';
+                if (historyLinkWrapperLeftPanel) historyLinkWrapperLeftPanel.style.display = 'none';
+                if (licenseLinkWrapperLeftPanel) licenseLinkWrapperLeftPanel.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                const delay = parseInt(card.dataset.delay) || 0;
+                setTimeout(() => {
+                    card.classList.add('is-visible');
+                }, delay);
+            });
+
+            if (currentUser && currentUser.user_id && currentUser.username) {
+                userNameDisplay.textContent = currentUser.username;
+                userDisplayTop.textContent = currentUser.username;
+                applySidebarPermissions();
+            } else {
+                console.warn("User data not fully available after DOMContentLoaded for sidebar update. Expected early redirect.");
+            }
+
+            if (applyMemberFiltersBtn) {
+                applyMemberFiltersBtn.remove();
+            }
+
+            searchMemberInput.addEventListener('input', applyMemberFilters);
+            filterRoleSelect.addEventListener('change', applyMemberFilters);
+
+            clearMemberFiltersBtn.addEventListener('click', clearMemberFilters);
+
+            addMemberBtn.addEventListener('click', () => openMemberModal());
+
+            closeButton.addEventListener('click', closeMemberModal);
+            cancelMemberBtn.addEventListener('click', closeMemberModal);
+            window.addEventListener('click', (event) => {
+                if (event.target === memberModal) {
+                    closeMemberModal();
+                }
+            });
+
+            nextStepBtn.addEventListener('click', nextStep);
+            prevStepBtn.addEventListener('click', prevStep);
+
+            memberForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (currentModalStep === 2) {
+                    submitMemberForm();
+                }
+            });
+
+            memberTableBody.addEventListener('click', async (event) => {
+                const target = event.target;
+                const editButton = target.closest('.edit-member-btn');
+                const deleteButton = target.closest('.delete-member-btn');
+
+                if (editButton) {
+                    const memberId = editButton.dataset.id;
+                    try {
+                        const response = await fetch(`api/get_user_by_id.php?user_id=${memberId}`);
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            try {
+                                const errorJson = JSON.parse(errorText);
+                                Swal.fire('ข้อผิดพลาด', errorJson.message || 'ไม่พบข้อมูลสมาชิก (ID ไม่ถูกต้อง)', 'error');
+                            } catch (parseError) {
+                                Swal.fire('ข้อผิดพลาด', `HTTP error! status: ${response.status}. Raw response: ${errorText}`, 'error');
+                            }
+                            return;
+                        }
+                        const result = await response.json();
+                        if (result.success && result.data) {
+                            openMemberModal(result.data);
+                        } else {
+                            Swal.fire('ข้อผิดพลาด', result.message || 'ไม่พบข้อมูลสมาชิกที่ต้องการแก้ไข', 'error');
+                        }
+                    } catch (err) {
+                        console.error("Error fetching member for edit:", err);
+                        Swal.fire('ข้อผิดพลาด', 'ข้อผิดพลาดเครือข่ายในการดึงข้อมูลสมาชิก: ' + err.message, 'error');
+                    }
+                } else if (deleteButton) {
+                    const memberId = deleteButton.dataset.id;
+                    await confirmDeleteMember(memberId);
+                }
+            });
+            
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    Swal.fire({
+                        title: 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'ใช่, ออกจากระบบ!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            localStorage.removeItem('user');
+                            localStorage.removeItem('token');
+                            Swal.fire({
+                                title: 'ออกจากระบบแล้ว!',
+                                text: 'คุณออกจากระบบเรียบร้อยแล้ว.',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {
+                                window.location.href = 'login.html';
+                            });
+                        }
+                    });
+                });
+            }
+            
+            fetchMembersFromServer();
+            fetchAndDisplayQuickStats();
+            applySidebarPermissions();
+        });
+    </script>
+</body>
+
+</html>
