@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
@@ -43,8 +44,8 @@
             --border-radius-sm: 8px;
         }
 
+        /* รูปแบบพื้นฐานของหน้าเว็บ */
         body {
-            /* รูปแบบพื้นฐานของหน้าเว็บ */
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
@@ -77,6 +78,7 @@
             box-shadow: var(--shadow-subtle);
             z-index: 20;
             border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
+
             position: fixed;
             height: 100vh;
             overflow-y: hidden;
@@ -270,7 +272,7 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        /* พื้นที่เนื้อหาหลัก (Main Content Area) */
+        /* Main Content Area Styles (จาก dashboard.html) */
         .main-content-area {
             flex-grow: 1;
             padding: 40px;
@@ -325,7 +327,7 @@
             color: var(--text-dark);
         }
 
-        /* รูปแบบพื้นฐานของการ์ด */
+        /* Card Base Styles (จาก dashboard.html) */
         .card {
             background: var(--card-bg);
             border-radius: var(--border-radius-lg);
@@ -349,7 +351,8 @@
             box-shadow: var(--shadow-hover);
         }
 
-        /* --- รูปแบบเฉพาะของหน้า Member --- */
+        /* --- Member Page Specific Styles --- */
+
         .member-controls {
             /* ส่วนควบคุมสำหรับการค้นหาและกรองข้อมูล */
             display: flex;
@@ -720,7 +723,8 @@
             order: 2;
         }
 
-        /* Responsive Adjustments */
+
+        /* Responsive Adjustments (จาก dashboard.html + เพิ่มเติม) */
         @media (max-width: 1024px) {
             .left-panel {
                 width: 250px;
@@ -802,6 +806,12 @@
                 padding: 20px;
             }
 
+            .mobile-menu-toggle {
+                display: flex;
+                top: 20px;
+                left: 20px;
+            }
+
             .main-content-header {
                 text-align: left;
                 margin-top: 70px;
@@ -864,8 +874,8 @@
                     <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a></li>
                     <li><a href="manage.html"><i class="fa-solid fa-boxes-stacked"></i> <span>Assets</span></a></li>
                     <li><a href="note.html"><i class="fa-solid fa-note-sticky"></i> <span>Notes</span></a></li>
-                    <li id="licenseLinkWrapperLeftPanel"><a href="license.html"><i class="fa-solid fa-key"></i>
-                            <span>Licenses</span></a></li>
+                    <li id="licenseLinkWrapperLeftPanel"><a href="license.html"><i
+                                class="fa-solid fa-key"></i> <span>Licenses</span></a></li>
                     <li id="memberLinkWrapperLeftPanel"><a href="member.html" class="active"><i
                                 class="fa-solid fa-users"></i> <span>Member</span></a></li>
                     <li id="historyLinkWrapperLeftPanel" style="display: none;"><a href="history.html"><i
@@ -923,7 +933,7 @@
                         </select>
                     </div>
                     <div class="action-buttons">
-                        <button class="btn primary" id="addMemberBtn"><i class="fa-solid fa-user-plus"></i> Add
+                        <button class="btn primary" id="addMemberBtn"><i class="fa-solid fa-user-plus"></i> Add New
                             Member</button>
                         <button class="btn secondary" id="applyMemberFiltersBtn"><i class="fa-solid fa-filter"></i>
                             Apply Filter</button>
@@ -1026,802 +1036,7 @@
             </div>
         </div>
     </div>
-    <script>
-        // --- Global Variables (ประกาศตัวแปร DOM Elements และ State Variables ที่จำเป็นใน Global Scope) ---
-        const memberTableBody = document.getElementById('memberTableBody');
-        const searchMemberInput = document.getElementById('searchMember');
-        const filterRoleSelect = document.getElementById('filterRole');
-        const addMemberBtn = document.getElementById('addMemberBtn');
-        const applyMemberFiltersBtn = document.getElementById('applyMemberFiltersBtn');
-        const clearMemberFiltersBtn = document.getElementById('clearMemberFiltersBtn');
-        const prevMemberPageBtn = document.getElementById('prevMemberPageBtn');
-        const nextMemberPageBtn = document.getElementById('nextMemberPageBtn');
-        const currentMemberPageDisplay = document.getElementById('currentMemberPageDisplay');
-        const memberModal = document.getElementById('memberModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const closeButton = memberModal.querySelector('.close-button');
-        const memberForm = document.getElementById('memberForm');
-        const memberIdInput = document.getElementById('memberId');
-        const empIdInput = document.getElementById('empId');
-        const memberNameInput = document.getElementById('memberName');
-        const memberPasswordInput = document.getElementById('memberPassword');
-        const memberRoleSelect = document.getElementById('memberRole');
-        const cancelMemberBtn = document.getElementById('cancelMemberBtn');
-        const permissionsCheckboxesDiv = document.getElementById('permissionsCheckboxes');
-        const memberStep1 = document.getElementById('memberStep1');
-        const memberStep2 = document.getElementById('memberStep2');
-        const nextStepBtn = document.getElementById('nextStepBtn');
-        const prevStepBtn = document.getElementById('prevStepBtn');
-        const saveMemberBtn = document.getElementById('saveMemberBtn');
-        const modalStepCounter = document.getElementById('modalStepCounter');
-        
-        // State variables
-        let currentModalStep = 1;
-        let tempMemberData = {};
-        let membersPerPage = 5;
-        let currentMemberPage = 1;
-        let filteredMembers = [];
-        let allMembers = [];
-        let isEditMode = false;
-
-        // สำหรับ Quick Stats และ User Info (อยู่ใน Navbar ซ้าย) - ต้องประกาศใน global scope เช่นกัน
-        const userNameDisplay = document.getElementById('userNameDisplay');
-        const userDisplayTop = document.querySelector('.main-content-header .user-display-top span');
-        const memberLinkWrapperLeftPanel = document.getElementById('memberLinkWrapperLeftPanel');
-        const historyLinkWrapperLeftPanel = document.getElementById('historyLinkWrapperLeftPanel');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const licenseLinkWrapperLeftPanel = document.getElementById('licenseLinkWrapperLeftPanel');
-
-        // --- Authentication and Authorization Check (ทำนอก DOMContentLoaded เพื่อให้ทำงานเร็วที่สุด) ---
-        let currentUser = null;
-        const currentUserString = localStorage.getItem('user');
-
-        if (!currentUserString) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'เซสชันหมดอายุ',
-                text: 'กรุณาเข้าสู่ระบบอีกครั้ง.',
-                showConfirmButton: false,
-                timer: 1500
-            }).then(() => {
-                window.location.href = 'login.html';
-            });
-            document.body.innerHTML = '';
-            throw new Error("User not logged in. Redirecting...");
-        } else {
-            try {
-                currentUser = JSON.parse(currentUserString);
-                if (!currentUser || !currentUser.user_id || !currentUser.username || !currentUser.role) {
-                    throw new Error("Invalid user data in localStorage.");
-                }
-
-                if (currentUser.role !== 'Admin') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'ไม่ได้รับอนุญาต',
-                        text: 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้.',
-                        showConfirmButton: false,
-                        timer: 1500
-                    }).then(() => {
-                        window.location.href = 'dashboard.html';
-                    });
-                    document.body.innerHTML = '';
-                    throw new Error("Unauthorized access. Redirecting...");
-                }
-
-            } catch (e) {
-                console.error("Authentication/Authorization Error:", e.message);
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'เซสชันหมดอายุ',
-                    text: 'ข้อมูลผู้ใช้เสียหาย กรุณาเข้าสู่ระบบอีกครั้ง.',
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => {
-                    window.location.href = 'login.html';
-                });
-                document.body.innerHTML = '';
-                throw e;
-            }
-        }
-
-
-        // --- Helper Functions ---
-
-        // ฟังก์ชันสำหรับดึงและแสดงสถิติย่อในแถบเมนู
-        async function fetchAndDisplayQuickStats() {
-            try {
-                const response = await fetch('api/get_dashboard_stats.php');
-                const result = await response.json();
-
-                if (result.success) {
-                    document.getElementById('assetsAddedMonth').textContent = result.data.assets_added_month;
-                    document.getElementById('assetsRetiredMonth').textContent = result.data.assets_retired_month;
-                } else {
-                    console.error('Error fetching quick stats:', result.message);
-                }
-            } catch (error) {
-                console.error('Network or parsing error fetching quick stats:', error);
-            }
-        }
-
-        // ฟังก์ชันสำหรับดึงข้อมูลสมาชิกทั้งหมดจากเซิร์ฟเวอร์
-        async function fetchMembersFromServer() {
-            memberTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">กำลังโหลดข้อมูลสมาชิก...</td></tr>`;
-            try {
-                const response = await fetch('api/get_members.php');
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-                }
-                const data = await response.json();
-
-                if (data.success && Array.isArray(data.data)) {
-                    allMembers = data.data;
-                } else if (Array.isArray(data)) {
-                    allMembers = data;
-                } else {
-                    console.error("Invalid data format from get_members.php:", data);
-                    allMembers = [];
-                }
-
-                applyMemberFilters();
-
-            } catch (err) {
-                memberTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color:red;">ไม่สามารถโหลดข้อมูลสมาชิกได้ (ข้อผิดพลาดเครือข่าย: ${err.message})</td></tr>`;
-                console.error("Error fetching members:", err);
-            }
-        }
-
-        // ฟังก์ชันสำหรับแสดงผลข้อมูลสมาชิกในตาราง
-        function renderMembers() {
-            memberTableBody.innerHTML = '';
-            const startIndex = (currentMemberPage - 1) * membersPerPage;
-            const endIndex = startIndex + membersPerPage;
-            const membersToRender = filteredMembers.slice(startIndex, endIndex);
-
-            if (membersToRender.length === 0) {
-                memberTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">No members found matching your criteria.</td></tr>`;
-                currentMemberPageDisplay.textContent = 'Page 0 of 0';
-                prevMemberPageBtn.disabled = true;
-                nextMemberPageBtn.disabled = true;
-                return;
-            }
-
-            membersToRender.forEach(member => {
-                const row = memberTableBody.insertRow();
-                row.setAttribute('data-id', member.user_id);
-                row.innerHTML = `
-                    <td>${member.emp_id || 'N/A'}</td>
-                    <td>${member.username || 'N/A'}</td>
-                    <td><span class="role-badge role-${member.role || 'User'}">${member.role || 'N/A'}</span></td>
-                    <td>${member.last_login || 'N/A'}</td>
-                    <td class="action-buttons-cell">
-                        <button class="btn secondary edit-member-btn" data-id="${member.user_id}"><i class="fa-solid fa-edit"></i> Edit</button>
-                        <button class="btn danger delete-member-btn" data-id="${member.user_id}"><i class="fa-solid fa-user-minus"></i> Delete</button>
-                    </td>
-                `;
-                memberTableBody.appendChild(row);
-            });
-            updateMemberPaginationControls();
-        }
-
-        // ฟังก์ชันสำหรับกรองข้อมูลจาก 'allMembers' ตามเงื่อนไขที่เลือก
-        function applyMemberFilters() {
-            const searchTerm = searchMemberInput.value.toLowerCase();
-            const filterRole = filterRoleSelect.value;
-
-            filteredMembers = allMembers.filter(member => {
-                const matchesSearch = searchTerm === '' ||
-                    (member.username && member.username.toLowerCase().includes(searchTerm)) ||
-                    (member.emp_id && member.emp_id.toLowerCase().includes(searchTerm));
-                const matchesRole = filterRole === '' || member.role === filterRole;
-                return matchesSearch && matchesRole;
-            });
-            currentMemberPage = 1;
-            renderMembers();
-        }
-
-        // ฟังก์ชันสำหรับล้างตัวกรองทั้งหมด
-        function clearMemberFilters() {
-            searchMemberInput.value = '';
-            filterRoleSelect.value = '';
-            applyMemberFilters();
-        }
-
-        // ฟังก์ชันสำหรับอัปเดตสถานะของปุ่ม Pagination
-        function updateMemberPaginationControls() {
-            const totalPages = Math.ceil(filteredMembers.length / membersPerPage);
-            currentMemberPageDisplay.textContent = `Page ${totalPages > 0 ? currentMemberPage : 0} of ${totalPages}`;
-            prevMemberPageBtn.disabled = currentMemberPage === 1;
-            nextMemberPageBtn.disabled = currentMemberPage === totalPages || totalPages === 0;
-        }
-
-        // --- Multi-step Modal Functions ---
-
-        // แสดง Modal ขั้นตอนที่กำหนด
-        function showStep(stepNum) {
-            memberStep1.classList.remove('active');
-            memberStep2.classList.remove('active');
-
-            prevStepBtn.classList.add('hidden');
-            nextStepBtn.classList.add('hidden');
-            saveMemberBtn.classList.add('hidden');
-            cancelMemberBtn.classList.remove('hidden');
-
-            if (stepNum === 1) {
-                memberStep1.classList.add('active');
-                nextStepBtn.classList.remove('hidden');
-                modalTitle.textContent = isEditMode ? 'Edit Member' : 'Add New Member';
-                modalStepCounter.textContent = '(1/2)';
-            } else if (stepNum === 2) {
-                memberStep2.classList.add('active');
-                prevStepBtn.classList.remove('hidden');
-                saveMemberBtn.classList.remove('hidden');
-                modalTitle.textContent = isEditMode ? 'Edit Member' : 'Add New Member';
-                modalStepCounter.textContent = '(2/2)';
-                togglePermissionCheckboxes(memberRoleSelect.value === 'User');
-            }
-            currentModalStep = stepNum;
-        }
-
-        // ไปยัง Modal ขั้นตอนถัดไป
-        function nextStep() {
-            const empId = empIdInput.value.trim();
-            const memberName = memberNameInput.value.trim();
-            const memberPassword = memberPasswordInput.value.trim();
-
-            if (!empId || !memberName) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'ข้อมูลไม่ครบถ้วน',
-                    text: 'กรุณากรอก Employee ID และ Name ให้ครบถ้วน',
-                });
-                return;
-            }
-
-            if (!isEditMode && !memberPassword) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'ข้อมูลไม่ครบถ้วน',
-                    text: 'กรุณากรอก Password สำหรับสมาชิกใหม่',
-                });
-                return;
-            }
-            if (!isEditMode && memberPassword.length < 3) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'รหัสผ่านสั้นเกินไป',
-                    text: 'รหัสผ่านควรมีอย่างน้อย 3 ตัวอักษร',
-                });
-                return;
-            }
-
-            tempMemberData.emp_id = empId;
-            tempMemberData.username = memberName;
-            tempMemberData.password = memberPassword;
-            showStep(2);
-        }
-
-        // ย้อนกลับไปยัง Modal ขั้นตอนก่อนหน้า
-        function prevStep() {
-            showStep(1);
-        }
-
-        // เปิด Modal สำหรับเพิ่ม/แก้ไขสมาชิก
-        function openMemberModal(member = null) {
-            memberModal.classList.add('is-open');
-            memberForm.reset();
-            if (Swal.getPopup()) {
-                Swal.resetValidationMessage();
-            }
-
-            tempMemberData = {};
-            isEditMode = (member !== null);
-            currentModalStep = 1;
-
-            if (isEditMode) {
-                modalTitle.textContent = 'Edit Member';
-                memberIdInput.value = member.user_id;
-                empIdInput.value = member.emp_id;
-                memberNameInput.value = member.username;
-                memberPasswordInput.value = '';
-                memberPasswordInput.placeholder = 'เว้นว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่าน';
-                memberPasswordInput.required = false;
-
-                memberRoleSelect.value = member.role;
-                fetchPermissionsForUser(member.user_id);
-                empIdInput.disabled = true;
-            } else {
-                modalTitle.textContent = 'Add New Member';
-                memberIdInput.value = '';
-                empIdInput.disabled = false;
-                memberPasswordInput.required = true;
-                memberPasswordInput.placeholder = '';
-                memberRoleSelect.value = 'User';
-                resetPermissionsCheckboxes();
-                togglePermissionCheckboxes(true);
-            }
-            showStep(currentModalStep);
-        }
-
-        // ปิด Modal
-        function closeMemberModal() {
-            memberModal.classList.remove('is-open');
-            memberForm.reset();
-            empIdInput.disabled = false;
-            currentModalStep = 1;
-            isEditMode = false;
-            resetPermissionsCheckboxes();
-            memberStep1.classList.add('active');
-            memberStep2.classList.remove('active');
-            nextStepBtn.classList.remove('hidden');
-            prevStepBtn.classList.add('hidden');
-            saveMemberBtn.classList.add('hidden');
-            modalStepCounter.textContent = '(1/2)';
-        }
-
-        // ส่งข้อมูลฟอร์มสมาชิกไปยังเซิร์ฟเวอร์
-        async function submitMemberForm() {
-            const emp_id = tempMemberData.emp_id;
-            const username = tempMemberData.username;
-            const password = tempMemberData.password;
-
-            const user_id = memberIdInput.value;
-            const role = memberRoleSelect.value;
-            const permissions = {};
-            document.querySelectorAll('#permissionsCheckboxes input[type="checkbox"]').forEach(checkbox => {
-                permissions[checkbox.dataset.page] = checkbox.checked ? 1 : 0;
-            });
-
-            if (role === 'User') {
-                if (permissions['member'] === 1 || permissions['history'] === 1 || permissions['licenses'] === 1) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'ข้อผิดพลาด',
-                        text: 'ผู้ใช้ Role "User" ไม่สามารถมีสิทธิ์เข้าถึงหน้า Licenses, Member หรือ History ได้'
-                    });
-                    return;
-                }
-            }
-
-            const dataToSend = {
-                user_id: user_id || null,
-                emp_id: emp_id,
-                username: username,
-                password: isEditMode && password === '' ? null : password,
-                role: role,
-                permissions: permissions,
-            };
-
-            const currentAdminUser = currentUser;
-            if (currentAdminUser && currentAdminUser.user_id) {
-                dataToSend.current_user_id = currentAdminUser.user_id;
-                dataToSend.current_username = currentAdminUser.username;
-            } else {
-                dataToSend.current_user_id = null;
-                dataToSend.current_username = "Unknown Admin";
-            }
-
-            let url = isEditMode ? 'api/update_member.php' : 'api/add_member.php';
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dataToSend)
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Network response not OK. Status:', response.status, 'Body:', errorText);
-                    try {
-                        const errorJson = JSON.parse(errorText);
-                        throw new Error(errorJson.message || `Server responded with status ${response.status}`);
-                    } catch (e) {
-                        throw new Error(`HTTP error! status: ${response.status}. Raw response: ${errorText}`);
-                    }
-                }
-
-                const result = await response.json();
-
-                if (result.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: isEditMode ? 'แก้ไขข้อมูลสำเร็จ' : 'เพิ่มสมาชิกสำเร็จ'
-                    });
-                    closeMemberModal();
-                    fetchMembersFromServer();
-                    fetchAndDisplayQuickStats();
-                    if (currentAdminUser && currentAdminUser.user_id == user_id) {
-                        const updatedUserResponse = await fetch(`api/get_user_by_id.php?user_id=${currentAdminUser.user_id}`);
-                        if (updatedUserResponse.ok) {
-                            const updatedUserData = await updatedUserResponse.json();
-                            if (updatedUserData.success) {
-                                localStorage.setItem('user', JSON.stringify(updatedUserData.data));
-                                applySidebarPermissions();
-                                if (updatedUserData.data.role !== 'Admin' && window.location.pathname.includes('member.html')) {
-                                    Swal.fire({
-                                        icon: 'info',
-                                        title: 'บทบาทเปลี่ยน',
-                                        text: 'บทบาทของคุณถูกเปลี่ยน คุณจะถูกเปลี่ยนหน้า.',
-                                        showConfirmButton: false,
-                                        timer: 2000
-                                    }).then(() => {
-                                        window.location.href = 'dashboard.html';
-                                    });
-                                }
-                            }
-                        } else {
-                            console.error("Failed to re-fetch current user data after update.");
-                        }
-                    }
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'เกิดข้อผิดพลาด',
-                        text: result.message || 'ไม่สามารถบันทึกข้อมูลสมาชิกได้'
-                    });
-                }
-            } catch (error) {
-                console.error("Error submitting member form:", error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
-                    text: error.message || 'ไม่สามารถบันทึกข้อมูลสมาชิกได้'
-                });
-            }
-
-        }
-
-        // ฟังก์ชันสำหรับยืนยันการลบสมาชิก
-        async function confirmDeleteMember(memberId) {
-            console.log('--- Attempting to delete member ---');
-            console.log('Member ID received by confirmDeleteMember:', memberId);
-
-            if (!memberId) {
-                Swal.fire('ข้อผิดพลาด', 'ไม่พบรหัสสมาชิกที่ต้องการลบ (ID เป็นค่าว่างหรือไม่ถูกต้อง)', 'error');
-                console.error('Error: memberId is invalid or empty:', memberId);
-                return;
-            }
-
-            const currentLoggedUser = currentUser;
-            if (currentLoggedUser && currentLoggedUser.user_id == memberId) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'ไม่สามารถลบตัวเองได้!',
-                    text: 'ไม่สามารถลบบัญชีที่คุณกำลังเข้าสู่ระบบอยู่ได้.',
-                    confirmButtonText: 'รับทราบ'
-                });
-                return;
-            }
-
-            const result = await Swal.fire({
-                title: 'ยืนยันการลบสมาชิก?',
-                text: 'การดำเนินการนี้ไม่สามารถยกเลิกได้ คุณแน่ใจหรือไม่?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#aaa',
-                confirmButtonText: 'ใช่, ลบเลย!',
-                cancelButtonText: 'ยกเลิก'
-            });
-
-            if (result.isConfirmed) {
-                try {
-                    let current_user_id_for_log = null;
-                    let current_username_for_log = "Unknown Admin";
-                    if (currentUser && currentUser.user_id) {
-                        current_user_id_for_log = currentUser.user_id;
-                        current_username_for_log = currentUser.username;
-                    }
-
-                    const response = await fetch('api/delete_member.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            user_id: memberId,
-                            current_user_id: current_user_id_for_log,
-                            current_username: current_username_for_log
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error('Network response not ok:', response.status, errorText);
-                        try {
-                            const errorJson = JSON.parse(errorText);
-                            throw new Error(errorJson.message || `Server responded with status ${response.status}`);
-                        } catch (e) {
-                            throw new Error(`HTTP error! status: ${response.status}. Raw response: ${errorText}`);
-                        }
-                    }
-
-                    const data = await response.json();
-                    console.log('Response from delete_member.php:', data);
-
-                    if (data.success) {
-                        Swal.fire('สำเร็จ!', data.message, 'success').then(() => {
-                            allMembers = allMembers.filter(member => member.user_id != memberId);
-                            applyMemberFilters();
-                            fetchAndDisplayQuickStats();
-                            if (current_user_id_for_log == memberId) {
-                                localStorage.removeItem('user');
-                                localStorage.removeItem('token');
-                                window.location.href = 'login.html';
-                            }
-                        });
-                    } else {
-                        Swal.fire('เกิดข้อผิดพลาด', data.message, 'error');
-                    }
-                } catch (err) {
-                    console.error("Error deleting member (frontend catch):", err);
-                    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบสมาชิกได้: ' + err.message, 'error');
-                }
-            }
-        }
-
-        // ดึงสิทธิ์ของผู้ใช้สำหรับ Modal แก้ไข
-        async function fetchPermissionsForUser(userId) {
-            try {
-                const response = await fetch(`api/get_user_permissions.php?user_id=${userId}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const result = await response.json();
-                if (result.success && result.data) {
-                    populatePermissionsCheckboxes(result.data);
-                } else {
-                    console.error("Failed to fetch user permissions:", result.message);
-                    resetPermissionsCheckboxes();
-                }
-            } catch (error) {
-                console.error("Network error fetching user permissions:", error);
-                resetPermissionsCheckboxes();
-            }
-        }
-
-        // แสดงสิทธิ์ใน checkbox ของ Modal
-        function populatePermissionsCheckboxes(permissions) {
-            const allPages = ['dashboard', 'assets', 'notes', 'licenses', 'member', 'history'];
-            allPages.forEach(page => {
-                const permissionItemDiv = document.querySelector(`#permissionsCheckboxes div.permission-item label input[data-page="${page}"]`)?.closest('.permission-item');
-                const checkbox = permissionItemDiv?.querySelector('input[type="checkbox"]');
-
-                if (checkbox && permissionItemDiv) {
-                    checkbox.checked = permissions[page] === 1;
-                }
-            });
-            const selectedRole = memberRoleSelect.value;
-            togglePermissionCheckboxes(selectedRole === 'User');
-        }
-
-        // รีเซ็ต checkbox สิทธิ์
-        function resetPermissionsCheckboxes() {
-            document.querySelectorAll('#permissionsCheckboxes input[type="checkbox"]').forEach(checkbox => {
-                checkbox.checked = false;
-                checkbox.disabled = false;
-                checkbox.closest('.permission-item').style.display = 'flex';
-            });
-            document.querySelector(`#permissionsCheckboxes input[data-page="dashboard"]`).checked = true;
-            document.querySelector(`#permissionsCheckboxes input[data-page="assets"]`).checked = true;
-            document.querySelector(`#permissionsCheckboxes input[data-page="notes"]`).checked = true;
-            document.querySelector(`#permissionsCheckboxes input[data-page="licenses"]`).checked = false;
-            document.querySelector(`#permissionsCheckboxes input[data-page="member"]`).checked = false;
-            document.querySelector(`#permissionsCheckboxes input[data-page="history"]`).checked = false;
-        }
-
-        // เปิด/ปิด checkbox ตาม Role
-        function togglePermissionCheckboxes(hideRestricted) {
-            document.querySelectorAll('#permissionsCheckboxes .permission-item').forEach(permissionItemDiv => {
-                const checkbox = permissionItemDiv.querySelector('input[type="checkbox"]');
-                if (checkbox) {
-                    if (checkbox.dataset.page === 'member' || checkbox.dataset.page === 'history' || checkbox.dataset.page === 'licenses') {
-                        if (hideRestricted) {
-                            permissionItemDiv.style.display = 'none';
-                            checkbox.checked = false;
-                        } else {
-                            permissionItemDiv.style.display = 'flex';
-                            checkbox.disabled = false;
-                        }
-                    } else {
-                        permissionItemDiv.style.display = 'flex';
-                        checkbox.disabled = false;
-                    }
-                }
-            });
-        }
-
-        // ฟังก์ชันสำหรับจัดการการแสดง/ซ่อนเมนูนำทางตามสิทธิ์ของผู้ใช้
-        async function applySidebarPermissions() {
-            if (!currentUser || !currentUser.user_id || !currentUser.username) {
-                console.warn("User data not fully available for sidebar permissions update. Expected early redirect.");
-                return;
-            }
-
-            userNameDisplay.textContent = currentUser.username;
-            userDisplayTop.textContent = currentUser.username;
-
-            const menuLinks = {
-                'dashboard': document.querySelector('nav.panel-nav a[href="dashboard.html"]')?.closest('li'),
-                'assets': document.querySelector('nav.panel-nav a[href="manage.html"]')?.closest('li'),
-                'notes': document.querySelector('nav.panel-nav a[href="note.html"]')?.closest('li'),
-                'licenses': licenseLinkWrapperLeftPanel,
-                'member': memberLinkWrapperLeftPanel,
-                'history': historyLinkWrapperLeftPanel
-            };
-
-            try {
-                const response = await fetch(`api/get_user_permissions.php?user_id=${currentUser.user_id}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const result = await response.json();
-
-                if (result.success && result.data) {
-                    const userPermissions = result.data;
-                    for (const pageName in menuLinks) {
-                        const canAccess = userPermissions[pageName] === 1;
-                        const linkElement = menuLinks[pageName];
-                        if (linkElement) {
-                            if (canAccess) {
-                                linkElement.style.display = 'list-item';
-                            } else {
-                                linkElement.style.display = 'none';
-                            }
-                        }
-                    }
-                    const currentPageFileName = window.location.pathname.split('/').pop().replace('.html', '');
-                    if (currentUser.role !== 'Admin' && userPermissions[currentPageFileName] === 0) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'ไม่ได้รับอนุญาต',
-                            text: 'สิทธิ์การเข้าถึงหน้านี้ของคุณได้ถูกเปลี่ยนแปลง.',
-                            showConfirmButton: false,
-                            timer: 1500
-                        }).then(() => {
-                            if (userPermissions['dashboard'] === 1) {
-                                window.location.href = 'dashboard.html';
-                            } else {
-                                localStorage.removeItem('user');
-                                localStorage.removeItem('token');
-                                window.location.href = 'login.html';
-                            }
-                        });
-                    }
-
-                } else {
-                    console.error("Failed to load user permissions for sidebar:", result.message);
-                    if (memberLinkWrapperLeftPanel) memberLinkWrapperLeftPanel.style.display = 'none';
-                    if (historyLinkWrapperLeftPanel) historyLinkWrapperLeftPanel.style.display = 'none';
-                    if (licenseLinkWrapperLeftPanel) licenseLinkWrapperLeftPanel.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Network error fetching user permissions for sidebar:', error);
-                if (memberLinkWrapperLeftPanel) memberLinkWrapperLeftPanel.style.display = 'none';
-                if (historyLinkWrapperLeftPanel) historyLinkWrapperLeftPanel.style.display = 'none';
-                if (licenseLinkWrapperLeftPanel) licenseLinkWrapperLeftPanel.style.display = 'none';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const cards = document.querySelectorAll('.card');
-            cards.forEach((card, index) => {
-                const delay = parseInt(card.dataset.delay) || 0;
-                setTimeout(() => {
-                    card.classList.add('is-visible');
-                }, delay);
-            });
-
-            if (currentUser && currentUser.user_id && currentUser.username) {
-                userNameDisplay.textContent = currentUser.username;
-                userDisplayTop.textContent = currentUser.username;
-                applySidebarPermissions();
-            } else {
-                console.warn("User data not fully available after DOMContentLoaded for sidebar update. Expected early redirect.");
-            }
-
-            if (applyMemberFiltersBtn) {
-                applyMemberFiltersBtn.remove();
-            }
-
-            searchMemberInput.addEventListener('input', applyMemberFilters);
-            filterRoleSelect.addEventListener('change', applyMemberFilters);
-
-            clearMemberFiltersBtn.addEventListener('click', clearMemberFilters);
-
-            addMemberBtn.addEventListener('click', () => openMemberModal());
-
-            closeButton.addEventListener('click', closeMemberModal);
-            cancelMemberBtn.addEventListener('click', closeMemberModal);
-            window.addEventListener('click', (event) => {
-                if (event.target === memberModal) {
-                    closeMemberModal();
-                }
-            });
-
-            nextStepBtn.addEventListener('click', nextStep);
-            prevStepBtn.addEventListener('click', prevStep);
-
-            memberForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                if (currentModalStep === 2) {
-                    submitMemberForm();
-                }
-            });
-
-            memberTableBody.addEventListener('click', async (event) => {
-                const target = event.target;
-                const editButton = target.closest('.edit-member-btn');
-                const deleteButton = target.closest('.delete-member-btn');
-
-                if (editButton) {
-                    const memberId = editButton.dataset.id;
-                    try {
-                        const response = await fetch(`api/get_user_by_id.php?user_id=${memberId}`);
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            try {
-                                const errorJson = JSON.parse(errorText);
-                                Swal.fire('ข้อผิดพลาด', errorJson.message || 'ไม่พบข้อมูลสมาชิก (ID ไม่ถูกต้อง)', 'error');
-                            } catch (parseError) {
-                                Swal.fire('ข้อผิดพลาด', `HTTP error! status: ${response.status}. Raw response: ${errorText}`, 'error');
-                            }
-                            return;
-                        }
-                        const result = await response.json();
-                        if (result.success && result.data) {
-                            openMemberModal(result.data);
-                        } else {
-                            Swal.fire('ข้อผิดพลาด', result.message || 'ไม่พบข้อมูลสมาชิกที่ต้องการแก้ไข', 'error');
-                        }
-                    } catch (err) {
-                        console.error("Error fetching member for edit:", err);
-                        Swal.fire('ข้อผิดพลาด', 'ข้อผิดพลาดเครือข่ายในการดึงข้อมูลสมาชิก: ' + err.message, 'error');
-                    }
-                } else if (deleteButton) {
-                    const memberId = deleteButton.dataset.id;
-                    await confirmDeleteMember(memberId);
-                }
-            });
-            
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => {
-                    Swal.fire({
-                        title: 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'ใช่, ออกจากระบบ!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            localStorage.removeItem('user');
-                            localStorage.removeItem('token');
-                            Swal.fire({
-                                title: 'ออกจากระบบแล้ว!',
-                                text: 'คุณออกจากระบบเรียบร้อยแล้ว.',
-                                icon: 'success',
-                                showConfirmButton: false,
-                                timer: 1500
-                            }).then(() => {
-                                window.location.href = 'login.html';
-                            });
-                        }
-                    });
-                });
-            }
-            
-            fetchMembersFromServer();
-            fetchAndDisplayQuickStats();
-            applySidebarPermissions();
-        });
-    </script>
+    
 </body>
 
 </html>
